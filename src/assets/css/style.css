@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+@layer base {
+    html,
+    body {
+        font-family: "Noto Sans TC", sans-serif;
+        scroll-behavior: smooth;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        font-variant-numeric: tabular-nums !important;
+        font-display: swap;
+    }
+
+    input,
+    textarea {
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+
+        @apply tracking-wider !opacity-100 !ring-0 !ring-offset-0 !outline-none;
+    }
+
+    input[type="file"],
+    input[type="time"] {
+        @apply !opacity-0;
+    }
+
+    input[type="time"] {
+        -webkit-appearance: auto !important;
+        -moz-appearance: auto !important;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @apply font-bold;
+    }
+
+    h2 {
+        @apply text-[40px] lg:text-[48px];
+    }
+
+    h3 {
+        @apply text-[28px] lg:text-[36px];
+    }
+
+    h4 {
+        @apply text-[20px] lg:text-2xl;
+    }
+}

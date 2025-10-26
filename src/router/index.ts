@@ -1,10 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useUserStore } from '@/stores/user'
-import LoginView from '@/views/LoginView.vue'
-import FormView from '@/views/FormView.vue'
-import MyRequestsView from '@/views/MyRequestsView.vue'
-import RequestDetailView from '@/views/RequestDetailView.vue'
-import AdminView from '@/views/AdminView.vue'
+import { useFrontendUserStore } from '@/stores/frontendUser'
+import { useAdminStore } from '@/stores/admin'
+import LoginView from '@/views/frontend/LoginView.vue'
+import FormView from '@/views/frontend/FormView.vue'
+import MyRequestsView from '@/views/frontend/MyRequestsView.vue'
+import RequestDetailView from '@/views/frontend/RequestDetailView.vue'
+import AdminLayout from '@/views/admin/AdminLayout.vue'
+import AdminDashboard from '@/components/admin/AdminDashboard.vue'
+import AdminOrders from '@/components/admin/AdminOrders.vue'
+import AdminOrderDetail from '@/components/admin/AdminOrderDetail.vue'
+import AdminUsers from '@/components/admin/AdminUsers.vue'
+import AdminUserRequests from '@/components/admin/AdminUserRequests.vue'
+import AdminAdmins from '@/components/admin/AdminAdmins.vue'
+import AdminLoginView from '@/views/admin/AdminLoginView.vue'
 import Step1DeviceSelection from '@/components/form/Step1DeviceSelection.vue'
 import Step2CategorySelection from '@/components/form/Step2CategorySelection.vue'
 import Step3FormDetails from '@/components/form/Step3FormDetails.vue'
@@ -72,29 +80,88 @@ const router = createRouter({
       meta: { requiresAuth: true },
       props: true
     },
+    // 後台路由
+    {
+      path: '/admin/login',
+      name: 'admin-login',
+      component: AdminLoginView
+    },
     {
       path: '/admin',
-      name: 'admin',
-      component: AdminView
+      component: AdminLayout,
+      meta: { requiresAuth: true, requiresAdmin: true },
+      children: [
+        {
+          path: '',
+          name: 'admin-dashboard',
+          component: AdminDashboard
+        },
+        {
+          path: 'orders',
+          name: 'admin-orders',
+          component: AdminOrders
+        },
+        {
+          path: 'orders/:id',
+          name: 'admin-order-detail',
+          component: AdminOrderDetail,
+          props: true
+        },
+        {
+          path: 'users',
+          name: 'admin-users',
+          component: AdminUsers
+        },
+        {
+          path: 'users/:userId/requests',
+          name: 'admin-user-requests',
+          component: AdminUserRequests,
+          props: true
+        },
+        {
+          path: 'admins',
+          name: 'admin-admins',
+          component: AdminAdmins
+        }
+      ]
     }
   ]
 })
 
 // 路由守衛
 router.beforeEach((to, _from, next) => {
-  const userStore = useUserStore()
-  
-  // 如果路由需要登入但使用者未登入，重導向到登入頁
-  if (to.meta.requiresAuth && !userStore.isLoggedIn) {
-    next('/')
-  } 
-  // 如果已登入但訪問登入頁，重導向到維修頁面
-  else if (to.name === 'login' && userStore.isLoggedIn) {
-    next('/form')
-  } 
-  else {
-    next()
+  const frontendUserStore = useFrontendUserStore()
+  const adminStore = useAdminStore()
+
+  // 前台路由需要前台使用者登入
+  if (to.meta.requiresAuth && !to.meta.requiresAdmin) {
+    if (!frontendUserStore.isLoggedIn) {
+      next('/')
+      return
+    }
   }
+
+  // 後台路由需要管理員登入
+  if (to.meta.requiresAdmin) {
+    if (!adminStore.isLoggedIn) {
+      next('/admin/login')
+      return
+    }
+  }
+
+  // 如果前台使用者已登入但訪問前台登入頁
+  if (to.name === 'login' && frontendUserStore.isLoggedIn) {
+    next('/form')
+    return
+  }
+
+  // 如果管理員已登入但訪問後台登入頁
+  if (to.name === 'admin-login' && adminStore.isLoggedIn) {
+    next('/admin')
+    return
+  }
+
+  next()
 })
 
 export default router

@@ -17,6 +17,10 @@
     "@fortawesome/vue-fontawesome": "^3.0.6",
     "@vueuse/core": "^10.7.0",
     "circle-progress.vue": "^3.4.1",
+    "html2canvas": "^1.4.1",
+    "html2pdf.js": "^0.12.1",
+    "jspdf": "^3.0.3",
+    "jspdf-autotable": "^5.0.2",
     "pinia": "^2.1.7",
     "vue": "^3.4.0",
     "vue-router": "^4.2.5"

@@ -83,22 +83,22 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useRepairRequestsStore } from '@/stores/repairRequests'
-import { useUserStore } from '@/stores/user'
+import { useFrontendUserStore } from '@/stores/frontendUser'
 import { REPAIR_STATUS_CONFIG, type RepairStatus } from '@/types'
 import Button from '@/components/common/Button.vue'
 
 const route = useRoute()
 const router = useRouter()
 const repairRequestsStore = useRepairRequestsStore()
-const userStore = useUserStore()
+const frontendUserStore = useFrontendUserStore()
 
 const status = route.params.status as RepairStatus
 
 const statusConfig = computed(() => REPAIR_STATUS_CONFIG[status])
 
 const userRequests = computed(() => {
-  if (!userStore.currentUser) return []
-  return repairRequestsStore.getUserRequests(userStore.currentUser.id)
+  if (!frontendUserStore.currentUser) return []
+  return repairRequestsStore.getUserRequests(frontendUserStore.currentUser.id)
 })
 
 const filteredRequests = computed(() => {

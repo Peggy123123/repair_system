@@ -84,6 +84,14 @@
           <p class="text-xs text-gray-500">
             登入即表示您同意我們的服務條款
           </p>
+          <div class="mt-2">
+            <router-link 
+              to="/admin/login" 
+              class="text-xs text-gray-400 hover:text-gray-600"
+            >
+              管理員登入
+            </router-link>
+          </div>
         </div>
       </div>
     </div>
@@ -93,12 +101,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/user'
-import type { User } from '@/types'
+import { useFrontendUserStore } from '@/stores/frontendUser'
 import Button from '@/components/common/Button.vue'
+import { mockLoginUsers } from '@/mock/users'
 
 const router = useRouter()
-const userStore = useUserStore()
+const frontendUserStore = useFrontendUserStore()
 
 // 表單登入狀態
 const loginForm = ref({
@@ -118,15 +126,8 @@ const handleFormLogin = async () => {
     await new Promise(resolve => setTimeout(resolve, 1000))
     
     // 簡單的驗證邏輯（實際應該呼叫後端 API）
-    if (loginForm.value.username === 'admin' && loginForm.value.password === '123456') {
-      const mockUser: User = {
-        id: 'user1',
-        lineUserId: null,
-        displayName: '管理員',
-        avatarUrl: 'https://via.placeholder.com/100x100'
-      }
-      
-      userStore.login(mockUser)
+    if (loginForm.value.username === 'user' && loginForm.value.password === '123456') {
+      frontendUserStore.login(mockLoginUsers[0])
       router.push('/form')
     } else {
       loginError.value = '帳號或密碼錯誤'
@@ -141,14 +142,7 @@ const handleFormLogin = async () => {
 // LINE 登入
 const handleLineLogin = () => {
   // Mock LINE 登入 - 實際會使用 LIFF SDK
-  const mockUser: User = {
-    id: 'user2',
-    lineUserId: 'U1234567890abcdef',
-    displayName: 'LINE 使用者',
-    avatarUrl: 'https://via.placeholder.com/100x100'
-  }
-  
-  userStore.login(mockUser)
+  frontendUserStore.login(mockLoginUsers[1])
   router.push('/form')
 }
 </script>

@@ -1,19 +1,17 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import type { User } from '@/types'
+import { ref, computed } from 'vue'
+import type { User } from '@/types/frontend'
 
-export const useUserStore = defineStore('user', () => {
+export const useFrontendUserStore = defineStore('frontendUser', () => {
   const currentUser = ref<User | null>(null)
-  const isLoggedIn = ref(false)
+  const isLoggedIn = computed(() => currentUser.value !== null)
 
   const login = (user: User) => {
     currentUser.value = user
-    isLoggedIn.value = true
   }
 
   const logout = () => {
     currentUser.value = null
-    isLoggedIn.value = false
   }
 
   return {
@@ -23,3 +21,4 @@ export const useUserStore = defineStore('user', () => {
     logout
   }
 })
+

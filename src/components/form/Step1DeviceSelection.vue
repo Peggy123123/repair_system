@@ -52,6 +52,8 @@ const selectDevice = (deviceId: string) => {
 const nextStep = () => {
   if (selectedDevice.value) {
     router.push(`/form/step2?device=${selectedDevice.value}`)
+    // 切換步驟時回到頂部
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 }
 </script>

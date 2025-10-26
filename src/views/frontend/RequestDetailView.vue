@@ -287,14 +287,15 @@
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useRepairRequestsStore } from '@/stores/repairRequests'
-import { useUserStore } from '@/stores/user'
+import { useFrontendUserStore } from '@/stores/frontendUser'
 import { REPAIR_STATUS_CONFIG } from '@/types'
 import Button from '@/components/common/Button.vue'
+import { addUserDescriptionToRequest, updateRepairRequestStatus } from '@/utils/repairRequestUtils'
 
 const route = useRoute()
 const router = useRouter()
 const repairRequestsStore = useRepairRequestsStore()
-const userStore = useUserStore()
+const frontendUserStore = useFrontendUserStore()
 const showImageModal = ref(false)
 const showCancelModal = ref(false)
 const showAddDescription = ref(false)
@@ -304,8 +305,8 @@ const currentImageIndex = ref(0)
 const requestId = route.params.id as string
 
 const request = computed(() => {
-  if (!userStore.currentUser) return null
-  const userRequests = repairRequestsStore.getUserRequests(userStore.currentUser.id)
+  if (!frontendUserStore.currentUser) return null
+  const userRequests = repairRequestsStore.getUserRequests(frontendUserStore.currentUser.id)
   return userRequests.find(r => r.id === requestId) || null
 })
 
@@ -368,7 +369,9 @@ const cancelAddDescription = () => {
 const confirmAddDescription = () => {
   if (!request.value || !newDescription.value.trim()) return
   
-  repairRequestsStore.addUserDescription(request.value.id, newDescription.value.trim())
+  // 使用工具函數添加使用者描述
+  addUserDescriptionToRequest(repairRequestsStore.requests, request.value.id, newDescription.value.trim())
+  
   showAddDescription.value = false
   newDescription.value = ''
 }
@@ -377,7 +380,7 @@ const confirmAddDescription = () => {
 const confirmCancel = () => {
   if (!request.value) return
   
-  repairRequestsStore.updateRequestStatus(request.value.id, 'cancelled')
+  updateRepairRequestStatus(repairRequestsStore.requests, request.value.id, 'cancelled')
   showCancelModal.value = false
   router.push('/my-requests')
 }

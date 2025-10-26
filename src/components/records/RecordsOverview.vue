@@ -31,17 +31,17 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useRepairRequestsStore } from '@/stores/repairRequests'
-import { useUserStore } from '@/stores/user'
+import { useFrontendUserStore } from '@/stores/frontendUser'
 import StatusCard from '@/components/common/StatusCard.vue'
 import { REPAIR_STATUS_CONFIG, type RepairStatus, type RepairStatusConfig } from '@/types'
 
 const router = useRouter()
 const repairRequestsStore = useRepairRequestsStore()
-const userStore = useUserStore()
+const frontendUserStore = useFrontendUserStore()
 
 const userRequests = computed(() => {
-  if (!userStore.currentUser) return []
-  return repairRequestsStore.getUserRequests(userStore.currentUser.id)
+  if (!frontendUserStore.currentUser) return []
+  return repairRequestsStore.getUserRequests(frontendUserStore.currentUser.id)
 })
 
 const statusCards = computed((): RepairStatusConfig[] => {

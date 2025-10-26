@@ -68,7 +68,7 @@
           <!-- 登出按鈕 -->
           <div class="px-6 py-4 border-t border-gray-200">
             <Button
-              v-if="userStore.isLoggedIn"
+              v-if="frontendUserStore.isLoggedIn"
               @click="handleLogout"
               text="登出"
               icon="sign-out-alt"
@@ -82,26 +82,8 @@
       </div>
     </div>
 
-    <!-- 電腦版導航（僅管理後台） -->
-    <nav v-if="isAdminRoute" class="bg-white shadow-sm border-b">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-          <div class="flex items-center">
-            <h1 class="text-xl font-semibold text-gray-900">管理後台</h1>
-          </div>
-          <div class="flex items-center space-x-4">
-            <router-link 
-              to="/admin" 
-              class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-            >
-              管理後台
-            </router-link>
-          </div>
-        </div>
-      </div>
-    </nav>
     
-    <main :class="isAdminRoute ? 'max-w-7xl mx-auto py-6 sm:px-6 lg:px-8' : ''">
+    <main>
       <router-view />
     </main>
   </div>
@@ -110,18 +92,18 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/user'
+import { useFrontendUserStore } from '@/stores/frontendUser'
 import Button from '@/components/common/Button.vue'
 
 const route = useRoute()
 const router = useRouter()
-const userStore = useUserStore()
+const frontendUserStore = useFrontendUserStore()
 
 // 手機版選單狀態
 const isMobileMenuOpen = ref(false)
 
 // 判斷是否為管理後台路由
-const isAdminRoute = computed(() => route.path === '/admin')
+const isAdminRoute = computed(() => route.path.startsWith('/admin'))
 
 // 切換手機版選單
 const toggleMobileMenu = () => {
@@ -135,7 +117,7 @@ const closeMobileMenu = () => {
 
 // 登出功能
 const handleLogout = () => {
-  userStore.logout()
+  frontendUserStore.logout()
   closeMobileMenu()
   router.push('/')
 }

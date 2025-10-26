@@ -107,13 +107,14 @@
 import { ref, reactive, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useRepairRequestsStore } from '@/stores/repairRequests'
-import { useUserStore } from '@/stores/user'
+import { useFrontendUserStore } from '@/stores/frontendUser'
 import { DEVICE_TYPES, REPAIR_SUB_CATEGORIES } from '@/types'
+import { createRepairRequest } from '@/utils/repairRequestUtils'
 
 const router = useRouter()
 const route = useRoute()
 const repairRequestsStore = useRepairRequestsStore()
-const userStore = useUserStore()
+const frontendUserStore = useFrontendUserStore()
 
 const isSubmitting = ref(false)
 
@@ -173,10 +174,12 @@ const removeImage = (index: number) => {
 
 const prevStep = () => {
   router.push(`/form/step2?device=${selectedDevice.value}`)
+  // 切換步驟時回到頂部
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 const submitForm = async () => {
-  if (!userStore.currentUser) {
+  if (!frontendUserStore.currentUser) {
     alert('請先登入')
     return
   }
@@ -187,8 +190,9 @@ const submitForm = async () => {
     // Mock API 呼叫
     await new Promise(resolve => setTimeout(resolve, 1000))
     
-    repairRequestsStore.addRequest({
-      userId: userStore.currentUser.id,
+    // 使用工具函數創建新的維修申請
+    const newRequest = createRepairRequest({
+      userId: frontendUserStore.currentUser.id,
       category: `${deviceName.value} - ${categoryName.value}`,
       title: form.title,
       description: form.description,
@@ -197,6 +201,7 @@ const submitForm = async () => {
       status: 'pending'
     })
     
+    repairRequestsStore.requests.unshift(newRequest)
     router.push('/form/step3?completed=true')
   } catch (error) {
     alert('提交失敗，請重試')

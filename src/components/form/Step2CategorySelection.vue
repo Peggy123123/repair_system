@@ -58,11 +58,15 @@ const selectCategory = (categoryId: string) => {
 
 const prevStep = () => {
   router.push('/form/step1')
+  // 切換步驟時回到頂部
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 const nextStep = () => {
   if (selectedCategory.value) {
     router.push(`/form/step3?device=${selectedDevice.value}&category=${selectedCategory.value}`)
+    // 切換步驟時回到頂部
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 }
 </script>

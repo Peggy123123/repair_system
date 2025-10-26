@@ -12,7 +12,7 @@ import RecordsOverview from '@/components/records/RecordsOverview.vue'
 import RecordsList from '@/components/records/RecordsList.vue'
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory('/repair_system/'),
   routes: [
     {
       path: '/',

@@ -1,4 +1,4 @@
-import type { RepairRequest, Reply } from '@/types'
+import type { RepairRequest, Reply, RepairSupplement } from '@/types'
 
 /**
  * 生成唯一 ID
@@ -47,19 +47,38 @@ export const updateRepairRequestStatus = (requests: RepairRequest[], requestId: 
 }
 
 /**
- * 添加使用者描述到維修申請
+ * 添加使用者補充描述到維修申請（獨立的補充記錄）
  */
-export const addUserDescriptionToRequest = (requests: RepairRequest[], requestId: string, description: string): boolean => {
-  if (!description || !description.trim()) {
+export const addUserDescriptionToRequest = (
+  requests: RepairRequest[],
+  requestId: string,
+  description: string,
+  images?: string[]
+): boolean => {
+  const request = requests.find(r => r.id === requestId)
+  if (!request) return false
+
+  // 如果沒有描述也沒有圖片，返回 false
+  if ((!description || !description.trim()) && (!images || images.length === 0)) {
     return false
   }
 
-  const request = requests.find(r => r.id === requestId)
-  if (request) {
-    const currentDescription = request.description || ''
-    request.description = `${currentDescription}\n\n[使用者補充描述 - ${new Date().toISOString()}]\n${description.trim()}`
-    request.updatedAt = new Date().toISOString()
-    return true
+  // 建立新的補充記錄
+  const supplement: RepairSupplement = {
+    id: generateId(),
+    createdAt: new Date().toISOString(),
+    content: description && description.trim() ? description.trim() : undefined,
+    attachmentUrls: images && images.length > 0 ? images : undefined
   }
-  return false
+
+  // 初始化 supplements 陣列（如果不存在）
+  if (!request.supplements) {
+    request.supplements = []
+  }
+
+  // 添加補充記錄
+  request.supplements.push(supplement)
+
+  request.updatedAt = new Date().toISOString()
+  return true
 }

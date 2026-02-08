@@ -1,6 +1,6 @@
 <template>
   <div id="app" class="min-h-screen bg-gray-50">
-    <!-- 手機版導航欄 -->
+    <!-- 手機版導航欄 - 前台顯示 -->
     <nav v-if="!isAdminRoute" class="bg-primary h-[90px]">
       <div class="container">
         <div class="flex items-center py-4 justify-between">
@@ -11,8 +11,9 @@
             <img src="/src/assets/images/photo-output%202%20(1).png" alt="維修系統" class="w-20 h-auto object-contain">
           </div>
 
-
+          <!-- 漢堡選單按鈕 - 只在登入後顯示 -->
           <Button
+            v-if="frontendUserStore.isLoggedIn"
             @click="toggleMobileMenu"
             :text="''"
             :icon="isMobileMenuOpen ? 'times' : 'bars'"
@@ -21,12 +22,13 @@
             :full-width="false"
             class="p-2 text-white"
           />
+          <div v-else class="w-10"></div>
         </div>
       </div>
     </nav>
 
-    <!-- 手機版側邊選單 -->
-    <div v-if="!isAdminRoute">
+    <!-- 手機版側邊選單 - 只在前台且已登入時顯示 -->
+    <div v-if="!isAdminRoute && frontendUserStore.isLoggedIn">
       <!-- 背景遮罩 -->
       <div 
         v-if="isMobileMenuOpen"

@@ -9,6 +9,14 @@ export interface User {
 // 維修狀態類型
 export type RepairStatus = 'pending' | 'in_progress' | 'repairing' | 'completed' | 'cancelled'
 
+// 補充描述類型
+export interface RepairSupplement {
+  id: string              // 補充記錄 ID
+  createdAt: string       // 補充日期時間
+  content?: string        // 補充文字描述（可選）
+  attachmentUrls?: string[] // 補充圖片（可選）
+}
+
 // 維修申請類型
 export interface RepairRequest {
   id: string
@@ -19,6 +27,7 @@ export interface RepairRequest {
   deviceType: string // 設備類型 (對應 DEVICE_TYPES 的 id)
   attachmentUrl?: string // 保留向後相容
   attachmentUrls?: string[] // 多張圖片支援
+  supplements?: RepairSupplement[] // 補充描述記錄
   status: RepairStatus
   createdAt: string
   updatedAt: string

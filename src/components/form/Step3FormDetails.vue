@@ -57,7 +57,7 @@
                 </label>
                 <p class="pl-1">或拖放檔案到此處</p>
               </div>
-              <p class="text-xs text-gray-500">PNG, JPG, GIF 最大 10MB，可上傳多張圖片</p>
+              <p class="text-xs text-gray-500">PNG, JPG, GIF 最大 10MB，最多 6 張圖片</p>
             </div>
           </div>
           <!-- 已上傳的圖片預覽 -->
@@ -138,13 +138,28 @@ const categoryName = computed(() => {
   return category?.name || ''
 })
 
+const MAX_IMAGES = 6
+
 const handleFileUpload = (event: Event) => {
   const target = event.target as HTMLInputElement
   const files = target.files
-  
+
   if (files && files.length > 0) {
-    // 處理多個檔案
-    Array.from(files).forEach(file => {
+    const remainingSlots = MAX_IMAGES - form.attachmentUrls.length
+
+    if (remainingSlots <= 0) {
+      alert(`最多只能上傳 ${MAX_IMAGES} 張圖片`)
+      return
+    }
+
+    // 只處理剩餘可用數量的檔案
+    const filesToProcess = Array.from(files).slice(0, remainingSlots)
+
+    if (files.length > remainingSlots) {
+      alert(`已達上限，僅上傳前 ${remainingSlots} 張圖片`)
+    }
+
+    filesToProcess.forEach(file => {
       // Mock 檔案上傳 - 實際會上傳到 Cloudinary
       const reader = new FileReader()
       reader.onload = (e) => {

@@ -24,6 +24,7 @@
 
 ## 技術棧
 
+### 前端
 | 類別 | 技術 | 版本 |
 |------|------|------|
 | **前端框架** | Vue 3 (Composition API) | 3.4.0 |
@@ -35,7 +36,22 @@
 | **圖標庫** | FontAwesome | 6.5.1 |
 | **PDF 生成** | jsPDF + jspdf-autotable | 3.0.3 |
 | **工具庫** | @vueuse/core | 10.7.0 |
-| **部署** | GitHub Pages | - |
+
+### 後端 (規劃中)
+| 類別 | 技術 | 版本 |
+|------|------|------|
+| **執行環境** | Node.js | 20.x LTS |
+| **後端框架** | Express.js | 4.x |
+| **資料庫** | MongoDB | 7.x |
+| **ODM** | Mongoose | 8.x |
+| **認證** | JWT / LINE LIFF | - |
+
+### 部署
+| 環境 | 平台 |
+|------|------|
+| **前端** | GitHub Pages |
+| **後端** | (規劃中) |
+| **資料庫** | MongoDB Atlas |
 
 ## 專案結構
 
@@ -131,7 +147,113 @@ src/
 | `/admin/users/:userId/requests` | admin-user-requests | 使用者維修記錄 |
 | `/admin/admins` | admin-admins | 管理者設定 |
 
+## 環境變數設定
+
+在專案根目錄建立 `.env` 檔案：
+
+```bash
+# 前端環境變數
+VITE_API_BASE_URL=http://localhost:3000/api
+VITE_LINE_LIFF_ID=your-liff-id
+
+# 後端環境變數 (server/.env)
+NODE_ENV=development
+PORT=3000
+MONGODB_URI=mongodb://localhost:27017/repair_system
+JWT_SECRET=your-jwt-secret-key
+LINE_CHANNEL_ID=your-line-channel-id
+LINE_CHANNEL_SECRET=your-line-channel-secret
+```
+
+## MongoDB 設定
+
+### 本地開發環境
+
+#### 方式一：使用 Docker (推薦)
+```bash
+# 啟動 MongoDB 容器
+docker run -d \
+  --name repair-system-mongo \
+  -p 27017:27017 \
+  -v repair-system-data:/data/db \
+  mongo:7
+
+# 查看容器狀態
+docker ps
+
+# 停止容器
+docker stop repair-system-mongo
+
+# 重新啟動容器
+docker start repair-system-mongo
+```
+
+#### 方式二：使用 Docker Compose
+在專案根目錄建立 `docker-compose.yml`：
+```yaml
+version: '3.8'
+services:
+  mongodb:
+    image: mongo:7
+    container_name: repair-system-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=repair_system
+
+volumes:
+  mongodb_data:
+```
+
+```bash
+# 啟動服務
+docker-compose up -d
+
+# 停止服務
+docker-compose down
+
+# 查看 logs
+docker-compose logs -f mongodb
+```
+
+#### 方式三：本地安裝 MongoDB
+```bash
+# macOS (使用 Homebrew)
+brew tap mongodb/brew
+brew install mongodb-community@7.0
+brew services start mongodb-community@7.0
+
+# 驗證安裝
+mongosh
+```
+
+### MongoDB Atlas (雲端)
+
+1. 前往 [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) 註冊帳號
+2. 建立免費 M0 Cluster
+3. 設定 Database Access (建立使用者)
+4. 設定 Network Access (允許 IP)
+5. 取得連線字串，更新 `.env`：
+
+```bash
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/repair_system?retryWrites=true&w=majority
+```
+
+### 資料庫管理工具
+
+推薦使用以下工具管理 MongoDB：
+- [MongoDB Compass](https://www.mongodb.com/products/compass) - 官方 GUI 工具
+- [mongosh](https://www.mongodb.com/docs/mongodb-shell/) - 命令列工具
+
 ## 開發環境設定
+
+### 前置需求
+- Node.js 20.x LTS
+- npm 10.x 或 pnpm
+- MongoDB 7.x (本地或 Atlas)
+- Docker (選用，用於本地 MongoDB)
 
 ### 安裝依賴
 ```bash
@@ -140,12 +262,20 @@ npm install
 
 ### 啟動開發伺服器
 ```bash
+# 前端開發伺服器
 npm run dev
+
+# 後端開發伺服器 (規劃中)
+npm run server:dev
 ```
 
 ### 建置專案
 ```bash
+# 前端建置
 npm run build
+
+# 後端建置 (規劃中)
+npm run server:build
 ```
 
 ### 預覽建置結果
@@ -157,6 +287,19 @@ npm run preview
 ```bash
 npm run lint
 ```
+
+## 測試帳號
+
+### 前台使用者
+| 帳號 | 密碼 | 說明 |
+|------|------|------|
+| `user` | `123456` | 測試使用者帳號 |
+| - | - | LINE 登入按鈕 (模擬張小明) |
+
+### 後台管理員
+| 帳號 | 密碼 | 角色 |
+|------|------|------|
+| `admin` | `admin` | 系統管理員 (super_admin) |
 
 ## 開發階段
 
@@ -215,18 +358,46 @@ npm run lint
 
 ## 部署
 
+### 前端部署 (GitHub Pages)
+
 專案使用 GitHub Actions 自動部署至 GitHub Pages。
 
-### 部署流程
+**部署流程：**
 1. 推送程式碼至 `main` 分支
 2. GitHub Actions 自動觸發建置
 3. 建置產物部署至 `gh-pages` 分支
 4. GitHub Pages 自動更新
 
-### 部署網址
+**部署網址：**
 ```
 https://<username>.github.io/repair_system/
 ```
+
+### 後端部署 (規劃中)
+
+**建議平台：**
+- [Railway](https://railway.app/) - 支援 Node.js + MongoDB
+- [Render](https://render.com/) - 免費方案可用
+- [Fly.io](https://fly.io/) - 邊緣部署
+
+**環境變數設定：**
+在部署平台設定以下環境變數：
+```
+NODE_ENV=production
+PORT=3000
+MONGODB_URI=<MongoDB Atlas 連線字串>
+JWT_SECRET=<安全的隨機字串>
+LINE_CHANNEL_ID=<LINE Channel ID>
+LINE_CHANNEL_SECRET=<LINE Channel Secret>
+CORS_ORIGIN=https://<username>.github.io
+```
+
+### 資料庫部署 (MongoDB Atlas)
+
+1. 使用 MongoDB Atlas 免費 M0 叢集
+2. 設定 IP 白名單 (允許部署平台 IP 或 `0.0.0.0/0`)
+3. 建立資料庫使用者並取得連線字串
+4. 在後端部署平台設定 `MONGODB_URI`
 
 ## 授權
 

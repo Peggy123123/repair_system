@@ -8,12 +8,20 @@
 
 ## 技術棧
 
+### 前端
 - **框架**: Vue 3.4 + TypeScript 5.3 + Vite 5.0
 - **狀態管理**: Pinia 2.1
 - **路由**: Vue Router 4.2
 - **樣式**: Tailwind CSS 3.4
 - **圖標**: FontAwesome 6.5
 - **PDF**: jsPDF 3.0
+
+### 後端 (規劃中)
+- **執行環境**: Node.js 20.x LTS
+- **框架**: Express.js 4.x
+- **資料庫**: MongoDB 7.x
+- **ODM**: Mongoose 8.x
+- **認證**: JWT / LINE LIFF
 
 ## 專案架構
 
@@ -110,6 +118,15 @@ interface Admin {
 - `/admin/users/:userId/requests` - 使用者維修記錄
 - `/admin/admins` - 管理者設定
 
+## 測試帳號
+
+### 前台
+- 帳號: `user` / 密碼: `123456`
+- LINE 登入按鈕 (模擬登入)
+
+### 後台
+- 帳號: `admin` / 密碼: `admin`
+
 ## 開發規範
 
 ### 組件命名
@@ -157,10 +174,45 @@ interface Admin {
 ## 常用指令
 
 ```bash
+# 前端
 npm run dev      # 開發伺服器
 npm run build    # 建置
 npm run preview  # 預覽建置結果
 npm run lint     # ESLint 檢查
+
+# 後端 (規劃中)
+npm run server:dev    # 後端開發伺服器
+npm run server:build  # 後端建置
+
+# MongoDB (Docker)
+docker start repair-system-mongo   # 啟動 MongoDB
+docker stop repair-system-mongo    # 停止 MongoDB
+```
+
+## 環境變數
+
+```bash
+# .env (前端)
+VITE_API_BASE_URL=http://localhost:3000/api
+VITE_LINE_LIFF_ID=your-liff-id
+
+# server/.env (後端)
+NODE_ENV=development
+PORT=3000
+MONGODB_URI=mongodb://localhost:27017/repair_system
+JWT_SECRET=your-jwt-secret-key
+```
+
+## MongoDB 設定
+
+### 本地開發 (Docker)
+```bash
+docker run -d --name repair-system-mongo -p 27017:27017 -v repair-system-data:/data/db mongo:7
+```
+
+### MongoDB Atlas (雲端)
+```bash
+MONGODB_URI=mongodb+srv://<user>:<pass>@cluster0.xxxxx.mongodb.net/repair_system
 ```
 
 ## 部署

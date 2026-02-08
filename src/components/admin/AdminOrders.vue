@@ -50,27 +50,13 @@
         </div>
 
         <div v-else class="space-y-3">
-          <div
+          <RepairOrderCard
             v-for="request in filteredRequests"
             :key="request.id"
-            class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-            @click="goToDetail(request.id)"
-          >
-            <div class="flex items-center space-x-4">
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    :class="getStatusClass(request.status)">
-                {{ getStatusLabel(request.status) }}
-              </span>
-              <div>
-                <h3 class="text-sm font-medium text-gray-900">{{ request.title }}</h3>
-                <p class="text-sm text-gray-500">{{ request.category }}</p>
-              </div>
-            </div>
-            <div class="text-right">
-              <p class="text-sm text-gray-900">{{ formatDate(request.createdAt) }}</p>
-              <p class="text-xs text-gray-500">申請人: {{ getUserName(request.userId) }}</p>
-            </div>
-          </div>
+            :request="request"
+            variant="detailed"
+            @click="goToDetail"
+          />
         </div>
       </div>
     </div>
@@ -81,7 +67,7 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useRepairRequestsStore } from '@/stores/repairRequests'
-import { REPAIR_STATUS_CONFIG } from '@/types'
+import RepairOrderCard from '@/components/admin/shared/RepairOrderCard.vue'
 
 const router = useRouter()
 const repairRequestsStore = useRepairRequestsStore()
@@ -111,35 +97,6 @@ const filteredRequests = computed(() => {
   // 按建立時間排序（最新的在前）
   return filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 })
-
-const getStatusClass = (status: string) => {
-  const config = REPAIR_STATUS_CONFIG[status as keyof typeof REPAIR_STATUS_CONFIG]
-  return config ? `${config.bgColor} ${config.color}` : 'bg-gray-100 text-gray-800'
-}
-
-const getStatusLabel = (status: string) => {
-  const config = REPAIR_STATUS_CONFIG[status as keyof typeof REPAIR_STATUS_CONFIG]
-  return config ? config.label : status
-}
-
-const getUserName = (userId: string) => {
-  const userNames: Record<string, string> = {
-    'user1': '測試使用者',
-    'user2': '張小明',
-    'user3': '李美華'
-  }
-  return userNames[userId] || '未知使用者'
-}
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleString('zh-TW', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
 
 const goToDetail = (requestId: string) => {
   router.push(`/admin/orders/${requestId}`)

@@ -87,6 +87,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { REPAIR_STATUS_CONFIG, type RepairStatus } from '@/types'
+import Button from '@/components/common/Button.vue'
 
 interface Props {
   isOpen: boolean

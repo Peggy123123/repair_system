@@ -44,13 +44,6 @@
             class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
           >
             <div class="flex items-center space-x-4">
-              <div class="flex-shrink-0">
-                <img
-                  :src="user.avatarUrl || 'https://via.placeholder.com/40x40'"
-                  :alt="user.displayName"
-                  class="h-10 w-10 rounded-full"
-                />
-              </div>
               <div>
                 <h3 class="text-sm font-medium text-gray-900">{{ user.displayName }}</h3>
                 <p class="text-sm text-gray-500">ID: {{ user.id }}</p>

@@ -196,6 +196,7 @@ const submitForm = async () => {
       category: `${deviceName.value} - ${categoryName.value}`,
       title: form.title,
       description: form.description,
+      deviceType: selectedDevice.value,
       attachmentUrl: form.attachmentUrl || undefined,
       attachmentUrls: form.attachmentUrls.length > 0 ? form.attachmentUrls : undefined,
       status: 'pending'

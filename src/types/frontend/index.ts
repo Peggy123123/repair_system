@@ -16,6 +16,7 @@ export interface RepairRequest {
   category: string
   title: string // 報修主題
   description: string // 報修描述
+  deviceType: string // 設備類型 (對應 DEVICE_TYPES 的 id)
   attachmentUrl?: string // 保留向後相容
   attachmentUrls?: string[] // 多張圖片支援
   status: RepairStatus
@@ -42,7 +43,8 @@ export interface DeviceType {
 export const DEVICE_TYPES: DeviceType[] = [
   { id: 'mac', name: 'MAC', icon: 'desktop' },
   { id: 'laptop', name: '筆電', icon: 'laptop' },
-  { id: 'computer', name: '電腦', icon: 'computer' }
+  { id: 'computer', name: '電腦', icon: 'computer' },
+  { id: 'other', name: '其它', icon: 'ellipsis-h' }
 ]
 
 // 維修細項分類

@@ -36,6 +36,10 @@
                   <dd class="mt-1 text-sm text-gray-900">{{ getUserName(request.userId) }}</dd>
                 </div>
                 <div>
+                  <dt class="text-sm font-medium text-gray-500">機型</dt>
+                  <dd class="mt-1 text-sm text-gray-900">{{ getDeviceTypeName(request.deviceType) }}</dd>
+                </div>
+                <div>
                   <dt class="text-sm font-medium text-gray-500">類別</dt>
                   <dd class="mt-1 text-sm text-gray-900">{{ request.category }}</dd>
                 </div>
@@ -56,10 +60,21 @@
                 </dd>
               </div>
 
-              <div v-if="request.attachmentUrl" class="mt-6">
+              <div v-if="hasAttachments" class="mt-6">
                 <dt class="text-sm font-medium text-gray-500 mb-2">附件圖片</dt>
                 <div class="mt-2">
-                  <img :src="request.attachmentUrl" alt="附件圖片" class="h-32 w-32 object-cover rounded-md">
+                  <!-- 多張圖片網格顯示 -->
+                  <div v-if="attachmentUrls.length > 1" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    <img
+                      v-for="(url, index) in attachmentUrls"
+                      :key="index"
+                      :src="url"
+                      :alt="`附件圖片 ${index + 1}`"
+                      class="h-32 w-full object-cover rounded-md"
+                    >
+                  </div>
+                  <!-- 單張圖片顯示 -->
+                  <img v-else :src="attachmentUrls[0]" alt="附件圖片" class="h-32 w-32 object-cover rounded-md">
                 </div>
               </div>
             </div>
@@ -198,7 +213,9 @@ import { useAdminStore } from '@/stores/admin'
 import { REPAIR_STATUS_CONFIG, type RepairStatus } from '@/types'
 import { createReply, updateRepairRequestStatus } from '@/utils/repairRequestUtils'
 import { generateWorkOrderPDF, type WorkOrderData } from '@/utils/pdfGenerator'
-import StatusEditModal from '@/components/common/StatusEditModal.vue'
+import StatusEditModal from '@/components/admin/shared/StatusEditModal.vue'
+import { DEVICE_TYPES } from '@/types'
+import { mockUsers } from '@/mock/users'
 
 const route = useRoute()
 const router = useRouter()
@@ -217,6 +234,28 @@ const request = computed(() => {
 
 const requestReplies = computed(() => {
   return repairRequestsStore.getRequestReplies(requestId)
+})
+
+// 計算附件圖片 URLs
+const attachmentUrls = computed(() => {
+  if (!request.value) return []
+
+  // 優先使用新的 attachmentUrls 陣列
+  if (request.value.attachmentUrls && request.value.attachmentUrls.length > 0) {
+    return request.value.attachmentUrls
+  }
+
+  // 向後相容：使用單一的 attachmentUrl
+  if (request.value.attachmentUrl) {
+    return [request.value.attachmentUrl]
+  }
+
+  return []
+})
+
+// 計算是否有附件
+const hasAttachments = computed(() => {
+  return attachmentUrls.value.length > 0
 })
 
 // 狀態彈窗相關方法
@@ -250,12 +289,13 @@ const getStatusLabel = (status: string) => {
 }
 
 const getUserName = (userId: string) => {
-  const userNames: Record<string, string> = {
-    'user1': '測試使用者',
-    'user2': '張小明',
-    'user3': '李美華'
-  }
-  return userNames[userId] || '未知使用者'
+  const user = mockUsers.find(u => u.id === userId)
+  return user ? user.displayName : '未知使用者'
+}
+
+const getDeviceTypeName = (deviceTypeId: string) => {
+  const deviceType = DEVICE_TYPES.find(dt => dt.id === deviceTypeId)
+  return deviceType ? deviceType.name : deviceTypeId
 }
 
 const formatDate = (dateString: string) => {

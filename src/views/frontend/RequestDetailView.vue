@@ -14,19 +14,10 @@
       </div>
     </div>
 
-    <!-- 載入狀態 -->
-    <div v-if="!request" class="text-center py-12">
-      <font-awesome-icon 
-        icon="spinner" 
-        class="mx-auto h-8 w-8 text-gray-400 animate-spin"
-      />
-      <p class="mt-2 text-sm text-gray-500">載入中...</p>
-    </div>
-
     <!-- 找不到記錄 -->
-    <div v-else-if="!request" class="text-center py-12">
-      <font-awesome-icon 
-        icon="exclamation-triangle" 
+    <div v-if="!request" class="text-center py-12">
+      <font-awesome-icon
+        icon="exclamation-triangle"
         class="mx-auto h-12 w-12 text-gray-400"
       />
       <h3 class="mt-2 text-sm font-medium text-gray-900">找不到此維修申請</h3>

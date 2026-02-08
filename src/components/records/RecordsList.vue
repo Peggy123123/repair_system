@@ -94,7 +94,18 @@ const frontendUserStore = useFrontendUserStore()
 
 const status = route.params.status as RepairStatus
 
-const statusConfig = computed(() => REPAIR_STATUS_CONFIG[status])
+// 驗證 status 是否為有效值
+const isValidStatus = computed(() => {
+  const validStatuses: RepairStatus[] = ['pending', 'in_progress', 'repairing', 'completed', 'cancelled']
+  return validStatuses.includes(status)
+})
+
+const statusConfig = computed(() => {
+  if (!isValidStatus.value) {
+    return REPAIR_STATUS_CONFIG.pending // 預設值
+  }
+  return REPAIR_STATUS_CONFIG[status]
+})
 
 const userRequests = computed(() => {
   if (!frontendUserStore.currentUser) return []

@@ -113,24 +113,13 @@
 
         <div v-else>
           <div class="space-y-3">
-            <div
+            <RepairOrderCard
               v-for="request in recentRequests"
               :key="request.id"
-              @click="goToOrderDetail(request.id)"
-              class="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-            >
-              <div class="flex items-center space-x-3">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                      :class="getStatusClass(request.status)">
-                  {{ getStatusLabel(request.status) }}
-                </span>
-                <span class="text-sm font-medium text-gray-900">{{ request.title }}</span>
-                <span class="text-sm text-gray-500">{{ request.category }}</span>
-              </div>
-              <span class="text-sm text-gray-500">
-                {{ formatDate(request.createdAt) }}
-              </span>
-            </div>
+              :request="request"
+              variant="simple"
+              @click="goToOrderDetail"
+            />
           </div>
           <div class="mt-4 flex justify-end">
             <Button
@@ -152,8 +141,8 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useRepairRequestsStore } from '@/stores/repairRequests'
-import { REPAIR_STATUS_CONFIG } from '@/types'
 import Button from '@/components/common/Button.vue'
+import RepairOrderCard from '@/components/admin/shared/RepairOrderCard.vue'
 
 const router = useRouter()
 const repairRequestsStore = useRepairRequestsStore()
@@ -169,26 +158,6 @@ const recentRequests = computed(() => {
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5)
 })
-
-const getStatusClass = (status: string) => {
-  const config = REPAIR_STATUS_CONFIG[status as keyof typeof REPAIR_STATUS_CONFIG]
-  return config ? `${config.bgColor} ${config.color}` : 'bg-gray-100 text-gray-800'
-}
-
-const getStatusLabel = (status: string) => {
-  const config = REPAIR_STATUS_CONFIG[status as keyof typeof REPAIR_STATUS_CONFIG]
-  return config ? config.label : status
-}
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleString('zh-TW', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
 
 const goToOrderDetail = (orderId: string) => {
   router.push({ name: 'admin-order-detail', params: { id: orderId } })

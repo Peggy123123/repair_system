@@ -21,11 +21,16 @@
       <div class="px-4 py-5 sm:p-6">
         <div class="flex items-center space-x-4">
           <div class="flex-shrink-0">
-            <img
-              :src="user?.avatarUrl || 'https://via.placeholder.com/40x40'"
-              :alt="user?.displayName"
-              class="h-12 w-12 rounded-full"
-            />
+            <div v-if="user?.avatarUrl && user?.avatarUrl !== ''">
+              <img
+                :src="user?.avatarUrl"
+                :alt="user?.displayName"
+                class="h-12 w-12 rounded-full object-cover"
+              />
+            </div>
+            <div v-else class="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
+              <font-awesome-icon icon="user" class="text-gray-400 text-2xl" />
+            </div>
           </div>
           <div>
             <h3 class="text-lg font-medium text-gray-900">{{ user?.displayName }}</h3>
@@ -68,6 +73,7 @@
               <p class="text-sm text-gray-600 mb-1">{{ request.description }}</p>
               <div class="flex items-center space-x-4 text-xs text-gray-500">
                 <span>類別：{{ request.category }}</span>
+                <span>機型：{{ getDeviceTypeName(request.deviceType) }}</span>
                 <span>申請時間：{{ formatDate(request.createdAt) }}</span>
                 <span v-if="request.updatedAt !== request.createdAt">
                   更新時間：{{ formatDate(request.updatedAt) }}
@@ -87,6 +93,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { AdminUser } from '@/types/admin'
 import type { RepairRequest } from '@/types'
+import { DEVICE_TYPES } from '@/types'
 import { mockUsers } from '@/mock/users'
 import { mockRequests } from '@/mock/repairRequests'
 
@@ -104,6 +111,7 @@ const getStatusClass = (status: string) => {
   const statusClasses = {
     pending: 'bg-yellow-100 text-yellow-800',
     in_progress: 'bg-blue-100 text-blue-800',
+    repairing: 'bg-orange-100 text-orange-800',
     completed: 'bg-green-100 text-green-800',
     cancelled: 'bg-red-100 text-red-800'
   }
@@ -114,6 +122,7 @@ const getStatusText = (status: string) => {
   const statusTexts = {
     pending: '待處理',
     in_progress: '處理中',
+    repairing: '維修中',
     completed: '已完成',
     cancelled: '已取消'
   }
@@ -128,6 +137,11 @@ const formatDate = (dateString: string) => {
     hour: '2-digit',
     minute: '2-digit'
   })
+}
+
+const getDeviceTypeName = (deviceTypeId: string) => {
+  const deviceType = DEVICE_TYPES.find(dt => dt.id === deviceTypeId)
+  return deviceType ? deviceType.name : deviceTypeId
 }
 
 const viewRequestDetail = (request: RepairRequest) => {

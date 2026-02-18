@@ -19,5 +19,5 @@ export interface AdminUser extends User {
 }
 
 // 重新導出前台型別供後台使用
-export type { RepairRequest, Reply, RepairStatus, RepairStatusConfig } from '../frontend'
+export type { RepairOrder, Reply, RepairStatus, RepairStatusConfig } from '../frontend'
 export { REPAIR_STATUS_CONFIG } from '../frontend'

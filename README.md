@@ -132,9 +132,9 @@ src/
 | `/form/step1` | form-step1 | 選擇設備類型 |
 | `/form/step2` | form-step2 | 選擇維修分類 |
 | `/form/step3` | form-step3 | 填寫詳情 / 完成頁 |
-| `/my-requests` | my-requests | 我的維修記錄 |
-| `/my-requests/:status` | records-list | 依狀態篩選記錄 |
-| `/my-requests/detail/:id` | request-detail | 申請詳情頁 |
+| `/my-orders` | my-orders | 我的維修記錄 |
+| `/my-orders/:status` | records-list | 依狀態篩選記錄 |
+| `/my-orders/detail/:id` | order-detail | 訂單詳情頁 |
 
 ### 後台路由
 | 路徑 | 名稱 | 說明 |
@@ -144,7 +144,7 @@ src/
 | `/admin/orders` | admin-orders | 訂單列表 |
 | `/admin/orders/:id` | admin-order-detail | 訂單詳情 |
 | `/admin/users` | admin-users | 使用者管理 |
-| `/admin/users/:userId/requests` | admin-user-requests | 使用者維修記錄 |
+| `/admin/users/:userId/orders` | admin-user-orders | 使用者維修記錄 |
 | `/admin/admins` | admin-admins | 管理者設定 |
 
 ## 環境變數設定

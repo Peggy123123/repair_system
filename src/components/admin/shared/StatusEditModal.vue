@@ -72,7 +72,7 @@
           />
           <Button
             @click="confirmStatusChange"
-            :disabled="selectedStatus === currentStatus || isSubmitting"
+            :disabled="selectedStatus === currentStatus"
             text="確認更新"
             variant="primary"
             :full-width="true"
@@ -102,7 +102,6 @@ const emit = defineEmits<{
 }>()
 
 const selectedStatus = ref<RepairStatus>(props.currentStatus)
-const isSubmitting = ref(false)
 
 const statusOptions = [
   { 
@@ -146,23 +145,10 @@ const closeModal = () => {
   emit('close')
 }
 
-const confirmStatusChange = async () => {
+const confirmStatusChange = () => {
   if (selectedStatus.value === props.currentStatus) return
-
-  isSubmitting.value = true
-
-  try {
-    // 模擬 API 調用
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    emit('status-change', selectedStatus.value)
-    closeModal()
-  } catch (error) {
-    console.error('狀態更新失敗:', error)
-    alert('狀態更新失敗，請重試')
-  } finally {
-    isSubmitting.value = false
-  }
+  emit('status-change', selectedStatus.value)
+  closeModal()
 }
 
 // 當彈窗打開時重置選中狀態

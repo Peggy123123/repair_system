@@ -9,7 +9,7 @@
           請登入以開始使用
         </p>
       </div>
-      
+
       <div class="mt-8 space-y-6">
         <!-- 帳號密碼登入表單 -->
         <form @submit.prevent="handleFormLogin" class="space-y-4">
@@ -26,7 +26,7 @@
               placeholder="請輸入帳號"
             />
           </div>
-          
+
           <div>
             <label for="password" class="block text-sm font-medium text-gray-700">
               密碼
@@ -40,11 +40,11 @@
               placeholder="請輸入密碼"
             />
           </div>
-          
+
           <div v-if="loginError" class="text-red-600 text-sm">
             {{ loginError }}
           </div>
-          
+
           <Button
             type="submit"
             :disabled="isLoading"
@@ -56,7 +56,7 @@
             :full-width="true"
           />
         </form>
-        
+
         <!-- 分隔線 -->
         <div class="relative">
           <div class="absolute inset-0 flex items-center">
@@ -66,7 +66,7 @@
             <span class="px-2 bg-gray-50 text-gray-500">或</span>
           </div>
         </div>
-        
+
         <!-- LINE 登入按鈕 -->
         <div class="text-center">
           <Button
@@ -79,14 +79,14 @@
             custom-class="!bg-green-600 !hover:bg-green-700 !focus:ring-green-500"
           />
         </div>
-        
+
         <div class="text-center">
           <p class="text-xs text-gray-500">
             登入即表示您同意我們的服務條款
           </p>
           <div class="mt-2">
-            <router-link 
-              to="/admin/login" 
+            <router-link
+              to="/admin/login"
               class="text-xs text-gray-400 hover:text-gray-600"
             >
               管理員登入
@@ -102,8 +102,8 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useFrontendUserStore } from '@/stores/frontendUser'
+import { loginUser } from '@/services/api'
 import Button from '@/components/common/Button.vue'
-import { mockLoginUsers } from '@/mock/users'
 
 const router = useRouter()
 const frontendUserStore = useFrontendUserStore()
@@ -120,29 +120,44 @@ const loginError = ref('')
 const handleFormLogin = async () => {
   isLoading.value = true
   loginError.value = ''
-  
+
   try {
-    // 模擬 API 呼叫延遲
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // 簡單的驗證邏輯（實際應該呼叫後端 API）
-    if (loginForm.value.username === 'user' && loginForm.value.password === '123456') {
-      frontendUserStore.login(mockLoginUsers[0])
-      router.push('/form')
-    } else {
-      loginError.value = '帳號或密碼錯誤'
-    }
+    const result = await loginUser(loginForm.value.username, loginForm.value.password)
+    frontendUserStore.setUser({
+      id: result.user.id,
+      lineUserId: result.user.lineUserId,
+      displayName: result.user.displayName,
+      avatarUrl: result.user.avatarUrl
+    })
+    router.push('/form')
   } catch (error) {
-    loginError.value = '登入失敗，請稍後再試'
+    loginError.value = error instanceof Error ? error.message : '登入失敗，請稍後再試'
   } finally {
     isLoading.value = false
   }
 }
 
 // LINE 登入
-const handleLineLogin = () => {
-  // Mock LINE 登入 - 實際會使用 LIFF SDK
-  frontendUserStore.login(mockLoginUsers[1])
-  router.push('/form')
+const handleLineLogin = async () => {
+  // TODO: 實際會使用 LIFF SDK 取得 access token
+  // 目前使用模擬的 demo 登入
+  isLoading.value = true
+  loginError.value = ''
+
+  try {
+    // Mock: 使用帳號密碼登入模擬 LINE 登入
+    const result = await loginUser('user', '123456')
+    frontendUserStore.setUser({
+      id: result.user.id,
+      lineUserId: result.user.lineUserId,
+      displayName: result.user.displayName,
+      avatarUrl: result.user.avatarUrl
+    })
+    router.push('/form')
+  } catch (error) {
+    loginError.value = error instanceof Error ? error.message : 'LINE 登入失敗'
+  } finally {
+    isLoading.value = false
+  }
 }
 </script>

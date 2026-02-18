@@ -106,14 +106,15 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useRepairRequestsStore } from '@/stores/repairRequests'
+import { useToast } from 'vue-toastification'
 import { useFrontendUserStore } from '@/stores/frontendUser'
+import { createOrder } from '@/services/api'
 import { DEVICE_TYPES, REPAIR_SUB_CATEGORIES } from '@/types'
-import { createRepairRequest } from '@/utils/repairRequestUtils'
+
+const toast = useToast()
 
 const router = useRouter()
 const route = useRoute()
-const repairRequestsStore = useRepairRequestsStore()
 const frontendUserStore = useFrontendUserStore()
 
 const isSubmitting = ref(false)
@@ -121,7 +122,6 @@ const isSubmitting = ref(false)
 const form = reactive({
   title: '',
   description: '',
-  attachmentUrl: '', // 保留向後相容
   attachmentUrls: [] as string[]
 })
 
@@ -148,7 +148,7 @@ const handleFileUpload = (event: Event) => {
     const remainingSlots = MAX_IMAGES - form.attachmentUrls.length
 
     if (remainingSlots <= 0) {
-      alert(`最多只能上傳 ${MAX_IMAGES} 張圖片`)
+      toast.warning(`最多只能上傳 ${MAX_IMAGES} 張圖片`)
       return
     }
 
@@ -156,7 +156,7 @@ const handleFileUpload = (event: Event) => {
     const filesToProcess = Array.from(files).slice(0, remainingSlots)
 
     if (files.length > remainingSlots) {
-      alert(`已達上限，僅上傳前 ${remainingSlots} 張圖片`)
+      toast.warning(`已達上限，僅上傳前 ${remainingSlots} 張圖片`)
     }
 
     filesToProcess.forEach(file => {
@@ -166,10 +166,6 @@ const handleFileUpload = (event: Event) => {
         const result = e.target?.result as string
         if (result) {
           form.attachmentUrls.push(result)
-          // 為了向後相容，將第一張圖片設為 attachmentUrl
-          if (form.attachmentUrls.length === 1) {
-            form.attachmentUrl = result
-          }
         }
       }
       reader.readAsDataURL(file)
@@ -179,12 +175,6 @@ const handleFileUpload = (event: Event) => {
 
 const removeImage = (index: number) => {
   form.attachmentUrls.splice(index, 1)
-  // 更新 attachmentUrl 為第一張圖片（向後相容）
-  if (form.attachmentUrls.length > 0) {
-    form.attachmentUrl = form.attachmentUrls[0]
-  } else {
-    form.attachmentUrl = ''
-  }
 }
 
 const prevStep = () => {
@@ -195,32 +185,24 @@ const prevStep = () => {
 
 const submitForm = async () => {
   if (!frontendUserStore.currentUser) {
-    alert('請先登入')
+    toast.warning('請先登入')
     return
   }
 
   isSubmitting.value = true
-  
+
   try {
-    // Mock API 呼叫
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // 使用工具函數創建新的維修申請
-    const newRequest = createRepairRequest({
-      userId: frontendUserStore.currentUser.id,
+    await createOrder({
       category: `${deviceName.value} - ${categoryName.value}`,
       title: form.title,
       description: form.description,
       deviceType: selectedDevice.value,
-      attachmentUrl: form.attachmentUrl || undefined,
-      attachmentUrls: form.attachmentUrls.length > 0 ? form.attachmentUrls : undefined,
-      status: 'pending'
+      attachmentUrls: form.attachmentUrls.length > 0 ? form.attachmentUrls : undefined
     })
-    
-    repairRequestsStore.requests.unshift(newRequest)
+    toast.success('維修申請已提交')
     router.push('/form/step3?completed=true')
-  } catch (error) {
-    alert('提交失敗，請重試')
+  } catch {
+    toast.error('提交失敗，請重試')
   } finally {
     isSubmitting.value = false
   }

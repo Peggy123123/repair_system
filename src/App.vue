@@ -8,7 +8,7 @@
           <div class="w-10"></div>
 
           <div class="flex-1 flex justify-center">
-            <img src="/src/assets/images/photo-output%202%20(1).png" alt="維修系統" class="w-20 h-auto object-contain">
+            <img src="/src/assets/images/logo.png" alt="維修系統" class="w-20 h-auto object-contain">
           </div>
 
           <!-- 漢堡選單按鈕 - 只在登入後顯示 -->
@@ -57,8 +57,8 @@
               >
                 申請維修
               </router-link>
-              <router-link 
-                to="/my-requests" 
+              <router-link
+                to="/my-orders"
                 @click="closeMobileMenu"
                 class="block px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg text-base font-medium transition-colors"
               >
@@ -95,6 +95,7 @@
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useFrontendUserStore } from '@/stores/frontendUser'
+import { logoutUser } from '@/services/api'
 import Button from '@/components/common/Button.vue'
 
 const route = useRoute()
@@ -118,9 +119,15 @@ const closeMobileMenu = () => {
 }
 
 // 登出功能
-const handleLogout = () => {
-  frontendUserStore.logout()
-  closeMobileMenu()
-  router.push('/')
+const handleLogout = async () => {
+  try {
+    await logoutUser()
+  } catch {
+    // Ignore logout errors
+  } finally {
+    frontendUserStore.clearUser()
+    closeMobileMenu()
+    router.push('/')
+  }
 }
 </script>

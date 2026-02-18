@@ -3,11 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "start": "bash scripts/dev.sh",
     "dev": "vite",
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
     "postbuild": "cp dist/index.html dist/404.html",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
+    "server:dev": "cd server && npm run dev",
+    "server:build": "cd server && npm run build",
+    "server:seed": "cd server && npm run seed",
+    "backup": "cd server && npx tsx src/scripts/backup-db.ts",
+    "migrate:request-to-order": "cd server && npx tsx src/scripts/migrate-request-to-order.ts",
+    "rollback:order-to-request": "cd server && npx tsx src/scripts/rollback-order-to-request.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.5.1",
@@ -17,13 +24,10 @@
     "@fortawesome/vue-fontawesome": "^3.0.6",
     "@vueuse/core": "^10.7.0",
     "circle-progress.vue": "^3.4.1",
-    "html2canvas": "^1.4.1",
-    "html2pdf.js": "^0.12.1",
-    "jspdf": "^3.0.3",
-    "jspdf-autotable": "^5.0.2",
     "pinia": "^2.1.7",
     "vue": "^3.4.0",
-    "vue-router": "^4.2.5"
+    "vue-router": "^4.2.5",
+    "vue-toastification": "^2.0.0-rc.5"
   },
   "devDependencies": {
     "@types/node": "^20.10.5",

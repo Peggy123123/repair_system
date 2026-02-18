@@ -75,6 +75,7 @@
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAdminStore } from '@/stores/admin'
+import { logoutAdmin } from '@/services/api'
 
 const router = useRouter()
 const adminStore = useAdminStore()
@@ -86,8 +87,14 @@ onMounted(() => {
   }
 })
 
-const logout = () => {
-  adminStore.logout()
-  router.push('/admin/login')
+const logout = async () => {
+  try {
+    await logoutAdmin()
+  } catch {
+    // Ignore logout errors
+  } finally {
+    adminStore.clearAdmin()
+    router.push('/admin/login')
+  }
 }
 </script>

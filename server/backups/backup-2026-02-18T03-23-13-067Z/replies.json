@@ -1,0 +1,26 @@
+[
+  {
+    "_id": "699473ef71ddb43706942215",
+    "repairRequestId": "69941ded71ddb437069421d1",
+    "adminId": "6988a130ea02e20194f7d0d2",
+    "content": "回覆測試1",
+    "createdAt": "2026-02-17T13:58:07.852Z",
+    "__v": 0
+  },
+  {
+    "_id": "6994740a71ddb4370694221a",
+    "repairRequestId": "69941ded71ddb437069421d1",
+    "adminId": "6988a130ea02e20194f7d0d2",
+    "content": "回覆測試2",
+    "createdAt": "2026-02-17T13:58:34.331Z",
+    "__v": 0
+  },
+  {
+    "_id": "69948e40d09fb83dc883f969",
+    "repairRequestId": "69941ded71ddb437069421d1",
+    "adminId": "6988a130ea02e20194f7d0d2",
+    "content": "ffff",
+    "createdAt": "2026-02-17T15:50:24.601Z",
+    "__v": 0
+  }
+]

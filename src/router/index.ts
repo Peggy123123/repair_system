@@ -3,14 +3,14 @@ import { useFrontendUserStore } from '@/stores/frontendUser'
 import { useAdminStore } from '@/stores/admin'
 import LoginView from '@/views/frontend/LoginView.vue'
 import FormView from '@/views/frontend/FormView.vue'
-import MyRequestsView from '@/views/frontend/MyRequestsView.vue'
-import RequestDetailView from '@/views/frontend/RequestDetailView.vue'
+import MyOrdersView from '@/views/frontend/MyOrdersView.vue'
+import OrderDetailView from '@/views/frontend/OrderDetailView.vue'
 import AdminLayout from '@/views/admin/AdminLayout.vue'
 import AdminDashboard from '@/components/admin/AdminDashboard.vue'
 import AdminOrders from '@/components/admin/AdminOrders.vue'
 import AdminOrderDetail from '@/components/admin/AdminOrderDetail.vue'
 import AdminUsers from '@/components/admin/AdminUsers.vue'
-import AdminUserRequests from '@/components/admin/AdminUserRequests.vue'
+import AdminUserOrders from '@/components/admin/AdminUserOrders.vue'
 import AdminAdmins from '@/components/admin/AdminAdmins.vue'
 import AdminLoginView from '@/views/admin/AdminLoginView.vue'
 import Step1DeviceSelection from '@/components/form/Step1DeviceSelection.vue'
@@ -55,9 +55,9 @@ const router = createRouter({
       ]
     },
     {
-      path: '/my-requests',
-      name: 'my-requests',
-      component: MyRequestsView,
+      path: '/my-orders',
+      name: 'my-orders',
+      component: MyOrdersView,
       meta: { requiresAuth: true },
       children: [
         {
@@ -74,9 +74,9 @@ const router = createRouter({
       ]
     },
     {
-      path: '/my-requests/detail/:id',
-      name: 'request-detail',
-      component: RequestDetailView,
+      path: '/my-orders/detail/:id',
+      name: 'order-detail',
+      component: OrderDetailView,
       meta: { requiresAuth: true },
       props: true
     },
@@ -113,9 +113,9 @@ const router = createRouter({
           component: AdminUsers
         },
         {
-          path: 'users/:userId/requests',
-          name: 'admin-user-requests',
-          component: AdminUserRequests,
+          path: 'users/:userId/orders',
+          name: 'admin-user-orders',
+          component: AdminUserOrders,
           props: true
         },
         {

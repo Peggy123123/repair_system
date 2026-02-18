@@ -17,29 +17,37 @@ export interface RepairSupplement {
   attachmentUrls?: string[] // 補充圖片（可選）
 }
 
-// 維修申請類型
-export interface RepairRequest {
+// 維修訂單類型
+export interface RepairOrder {
   id: string
   userId: string
   category: string
   title: string // 報修主題
   description: string // 報修描述
   deviceType: string // 設備類型 (對應 DEVICE_TYPES 的 id)
-  attachmentUrl?: string // 保留向後相容
   attachmentUrls?: string[] // 多張圖片支援
   supplements?: RepairSupplement[] // 補充描述記錄
+  repairContent?: string // 維修內容 (管理員填寫)
+  notes?: string // 備註 (管理員填寫)
   status: RepairStatus
   createdAt: string
   updatedAt: string
 }
 
+// 含使用者資訊的維修訂單 (後台清單 / 詳情用)
+export interface RepairOrderWithUser extends RepairOrder {
+  userName: string
+  userAvatar: string
+}
+
 // 回覆類型
 export interface Reply {
   id: string
-  repairRequestId: string
+  repairOrderId: string
   adminId: string
   content: string
   createdAt: string
+  updatedAt: string
 }
 
 // 維修設備類型

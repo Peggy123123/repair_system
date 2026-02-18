@@ -12,7 +12,7 @@
           請使用管理員帳號登入
         </p>
       </div>
-      
+
       <form @submit.prevent="handleAdminLogin" class="mt-8 space-y-6">
         <div class="rounded-md shadow-sm -space-y-px">
           <div>
@@ -32,7 +32,7 @@
               id="admin-password"
               v-model="adminForm.password"
               type="password"
-    
+
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
               placeholder="密碼"
             />
@@ -58,7 +58,7 @@
 
         <div class="text-center">
           <router-link
-            to="/" 
+            to="/"
             class="text-sm text-gray-600 hover:text-gray-500"
           >
             返回前台登入
@@ -73,6 +73,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAdminStore } from '@/stores/admin'
+import { loginAdmin } from '@/services/api'
 import type { Admin } from '@/types/admin'
 import Button from '@/components/common/Button.vue'
 
@@ -93,28 +94,19 @@ const handleAdminLogin = async () => {
   loginError.value = ''
 
   try {
-    // 模擬 API 呼叫延遲
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    // 管理員驗證邏輯 (預設帳號: admin / admin)
-    if (adminForm.value.username === 'admin' && adminForm.value.password === 'admin') {
-      const adminUser: Admin = {
-        id: 'admin1',
-        username: 'admin',
-        displayName: '系統管理員',
-        avatarUrl: 'https://via.placeholder.com/100x100',
-        role: 'super_admin',
-        status: 'active',
-        lastLoginAt: new Date().toISOString()
-      }
-
-      adminStore.login(adminUser)
-      router.push('/admin')
-    } else {
-      loginError.value = '管理員帳號或密碼錯誤'
-    }
+    const result = await loginAdmin(adminForm.value.username, adminForm.value.password)
+    adminStore.setAdmin({
+      id: result.admin.id,
+      username: result.admin.username,
+      displayName: result.admin.displayName,
+      avatarUrl: result.admin.avatarUrl,
+      role: result.admin.role as Admin['role'],
+      status: 'active',
+      lastLoginAt: new Date().toISOString()
+    })
+    router.push('/admin')
   } catch (error) {
-    loginError.value = '登入失敗，請稍後再試'
+    loginError.value = error instanceof Error ? error.message : '登入失敗，請稍後再試'
   } finally {
     isLoading.value = false
   }

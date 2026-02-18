@@ -19,7 +19,7 @@
       <!-- 底部按鈕 -->
       <div class="flex justify-center">
         <Button
-        @click="$router.push('/my-requests')"
+        @click="$router.push('/my-orders')"
         variant="primary"
         text="查看維修紀錄"
         :custom-class="'w-full md:w-fit'"

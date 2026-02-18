@@ -19,7 +19,7 @@
         <!-- 底部按鈕 -->
         <div class="flex justify-between mt-4 gap-2">
           <Button
-          @click="$router.push('/my-requests')"
+          @click="$router.push('/my-orders')"
             variant="secondary"
             text="取消並返回維修紀錄"
           />

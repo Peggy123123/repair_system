@@ -1,11 +1,15 @@
 <template>
   <div>
-    <div class="mb-6">
-      <h2 class="text-2xl font-bold text-gray-900">訂單管理</h2>
-      <p class="mt-1 text-sm text-gray-600">管理所有維修申請訂單</p>
-    </div>
+    <!-- Loading 狀態 -->
+    <LoadingSpinner v-if="isLoading" message="載入中..." />
 
-    <!-- 篩選器 -->
+    <template v-else>
+      <div class="mb-6">
+        <h2 class="text-2xl font-bold text-gray-900">訂單管理</h2>
+        <p class="mt-1 text-sm text-gray-600">管理所有維修申請訂單</p>
+      </div>
+
+      <!-- 篩選器 -->
     <div class="bg-white shadow rounded-lg mb-6">
       <div class="px-4 py-5 sm:p-6">
         <div class="flex items-center space-x-4">
@@ -45,40 +49,53 @@
     <!-- 訂單列表 -->
     <div class="bg-white shadow rounded-lg">
       <div class="px-4 py-5 sm:p-6">
-        <div v-if="filteredRequests.length === 0" class="text-center py-8">
+        <div v-if="filteredOrders.length === 0" class="text-center py-8">
           <p class="text-gray-500">沒有找到符合條件的訂單</p>
         </div>
 
         <div v-else class="space-y-3">
           <RepairOrderCard
-            v-for="request in filteredRequests"
-            :key="request.id"
-            :request="request"
+            v-for="order in filteredOrders"
+            :key="order.id"
+            :order="order"
             variant="detailed"
             @click="goToDetail"
           />
         </div>
       </div>
     </div>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useRepairRequestsStore } from '@/stores/repairRequests'
+import { getAllOrders } from '@/services/api'
+import type { RepairOrderWithUser } from '@/types'
 import RepairOrderCard from '@/components/admin/shared/RepairOrderCard.vue'
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 
 const router = useRouter()
-const repairRequestsStore = useRepairRequestsStore()
 
 const selectedStatus = ref('')
 const searchQuery = ref('')
 
-const allRequests = computed(() => repairRequestsStore.requests)
+const allOrders = ref<RepairOrderWithUser[]>([])
+const isLoading = ref(true)
 
-const filteredRequests = computed(() => {
-  let filtered = allRequests.value
+onMounted(async () => {
+  try {
+    allOrders.value = await getAllOrders()
+  } catch {
+    // API 錯誤
+  } finally {
+    isLoading.value = false
+  }
+})
+
+const filteredOrders = computed(() => {
+  let filtered = allOrders.value
 
   // 狀態篩選
   if (selectedStatus.value) {
@@ -88,7 +105,7 @@ const filteredRequests = computed(() => {
   // 搜尋篩選
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(r => 
+    filtered = filtered.filter(r =>
       r.title.toLowerCase().includes(query) ||
       r.category.toLowerCase().includes(query)
     )
@@ -98,7 +115,7 @@ const filteredRequests = computed(() => {
   return filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 })
 
-const goToDetail = (requestId: string) => {
-  router.push(`/admin/orders/${requestId}`)
+const goToDetail = (orderId: string) => {
+  router.push(`/admin/orders/${orderId}`)
 }
 </script>

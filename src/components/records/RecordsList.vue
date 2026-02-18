@@ -1,72 +1,65 @@
 <template>
-  <!-- 頁面標題 -->
-  <div class="mb-6">
-    <div class="flex items-center space-x-4 mb-4">
-      <Button 
-        @click="$router.back()"
-        text="返回"
-        icon="arrow-left"
-        variant="outline"
-        size="sm"
-        :full-width="false"
-      />
-    </div>
-    <h2 class="text-2xl font-bold text-gray-900">{{ statusConfig.label }}</h2>
-    <p class="mt-1 text-sm text-gray-600">共 {{ filteredRequests.length }} 筆記錄</p>
-  </div>
+  <!-- Loading 狀態 -->
+  <LoadingSpinner v-if="isLoading" message="載入中..." />
 
-  <!-- 空狀態 -->
-  <div v-if="filteredRequests.length === 0" class="text-center py-12">
+  <template v-else>
+    <!-- 頁面標題 -->
+    <div class="mb-6">
+      <div class="flex items-center space-x-4 mb-4">
+        <Button
+          @click="$router.back()"
+          text="返回"
+          icon="arrow-left"
+          variant="outline"
+          size="sm"
+          :full-width="false"
+        />
+      </div>
+      <h2 class="text-2xl font-bold text-gray-900">{{ statusConfig.label }}</h2>
+      <p class="mt-1 text-sm text-gray-600">共 {{ filteredOrders.length }} 筆記錄</p>
+    </div>
+
+    <!-- 空狀態 -->
+    <div v-if="filteredOrders.length === 0" class="text-center py-12">
     <h3 class="mt-2 text-sm font-medium text-gray-500">尚無{{ statusConfig.label }}記錄</h3>
   </div>
 
   <!-- 請求列表 -->
   <div v-else class="space-y-4">
     <div
-      v-for="request in filteredRequests"
-      :key="request.id"
+      v-for="order in filteredOrders"
+      :key="order.id"
       class="bg-white shadow rounded-lg overflow-hidden cursor-pointer hover:shadow-md transition-shadow duration-200"
-      @click="navigateToDetail(request.id)"
+      @click="navigateToDetail(order.id)"
     >
       <div class="px-4 py-5 sm:p-6">
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center">
-            <span 
+            <span
               class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
               :class="statusConfig.bgColor + ' ' + statusConfig.color"
             >
               {{ statusConfig.label }}
             </span>
 
-            <span class="text-sm font-bold text-gray-900">{{ request.category }}</span>
+            <span class="text-sm font-bold text-gray-900">{{ order.category }}</span>
           </div>
           <span class="text-sm text-gray-500">
-            {{ formatDate(request.createdAt) }}
+            {{ formatDate(order.createdAt) }}
           </span>
         </div>
 
         <div class="mb-4 flex flex-col gap-4">
-          <h4 class="text-sm font-semibold text-gray-900"><span class="bg-red-600/20 text-primary px-2 py-1 rounded-md text-sm">主題</span> {{ request.title }}</h4>
-          <h4 class="text-sm font-semibold text-gray-900"><span class="bg-red-600/20 text-primary px-2 py-1 rounded-md text-sm">描述</span> {{ getOriginalDescription(request.description) }}
+          <h4 class="text-sm font-semibold text-gray-900"><span class="bg-red-600/20 text-primary px-2 py-1 rounded-md text-sm">主題</span> {{ order.title }}</h4>
+          <h4 class="text-sm font-semibold text-gray-900"><span class="bg-red-600/20 text-primary px-2 py-1 rounded-md text-sm">描述</span> {{ getOriginalDescription(order.description) }}
           </h4>
         </div>
 
-        <div v-if="request.attachmentUrl" class="mb-4">
+        <div v-if="order.attachmentUrls && order.attachmentUrls.length > 0" class="mb-4">
           <div class="flex items-center text-sm text-gray-500">
             <font-awesome-icon icon="paperclip" class="mr-1" />
             包含附件圖片
           </div>
-        </div>
-
-        <!-- 回覆預覽 -->
-        <div v-if="requestReplies[request.id]?.length > 0" class="mt-4 pt-4 border-t border-gray-200">
-          <div class="flex items-center text-sm text-gray-500 mb-2">
-            <font-awesome-icon icon="comment" class="mr-1" />
-            管理員回覆 ({{ requestReplies[request.id].length }})
-          </div>
-          <p class="text-sm text-gray-600 line-clamp-1">
-            {{ requestReplies[request.id][0].content }}
-          </p>
         </div>
 
         <!-- 點擊提示 -->
@@ -77,22 +70,34 @@
       </div>
     </div>
   </div>
+  </template>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useRepairRequestsStore } from '@/stores/repairRequests'
-import { useFrontendUserStore } from '@/stores/frontendUser'
-import { REPAIR_STATUS_CONFIG, type RepairStatus } from '@/types'
+import { getMyOrders } from '@/services/api'
+import { REPAIR_STATUS_CONFIG, type RepairOrder, type RepairStatus } from '@/types'
 import Button from '@/components/common/Button.vue'
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 
 const route = useRoute()
 const router = useRouter()
-const repairRequestsStore = useRepairRequestsStore()
-const frontendUserStore = useFrontendUserStore()
 
 const status = route.params.status as RepairStatus
+
+const allOrders = ref<RepairOrder[]>([])
+const isLoading = ref(true)
+
+onMounted(async () => {
+  try {
+    allOrders.value = await getMyOrders()
+  } catch {
+    // API 錯誤
+  } finally {
+    isLoading.value = false
+  }
+})
 
 // 驗證 status 是否為有效值
 const isValidStatus = computed(() => {
@@ -107,21 +112,8 @@ const statusConfig = computed(() => {
   return REPAIR_STATUS_CONFIG[status]
 })
 
-const userRequests = computed(() => {
-  if (!frontendUserStore.currentUser) return []
-  return repairRequestsStore.getUserRequests(frontendUserStore.currentUser.id)
-})
-
-const filteredRequests = computed(() => {
-  return userRequests.value.filter(request => request.status === status)
-})
-
-const requestReplies = computed(() => {
-  const replies: Record<string, any[]> = {}
-  filteredRequests.value.forEach(request => {
-    replies[request.id] = repairRequestsStore.getRequestReplies(request.id)
-  })
-  return replies
+const filteredOrders = computed(() => {
+  return allOrders.value.filter(order => order.status === status)
 })
 
 const formatDate = (dateString: string) => {
@@ -143,8 +135,8 @@ const getOriginalDescription = (description: string) => {
   return description
 }
 
-const navigateToDetail = (requestId: string) => {
-  router.push(`/my-requests/detail/${requestId}`)
+const navigateToDetail = (orderId: string) => {
+  router.push(`/my-orders/detail/${orderId}`)
 }
 </script>
 

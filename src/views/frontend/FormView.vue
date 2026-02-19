@@ -21,7 +21,7 @@
         </div>
 
         <div class="ml-6">
-          <h2 class="text-lg font-semibold text-gray-900">{{ currentStepName }}</h2>
+          <h2 class="text-lg font-semibold text-textColor">{{ currentStepName }}</h2>
           <p class="text-sm text-gray-500">{{ currentStepDescription }}</p>
         </div>
       </div>

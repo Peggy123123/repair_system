@@ -28,11 +28,6 @@ export const login = async (
       return;
     }
 
-    if (admin.status !== 'active') {
-      sendError(res, 'Account is inactive', 401);
-      return;
-    }
-
     const isMatch = await admin.comparePassword(password);
     if (!isMatch) {
       sendError(res, 'Invalid credentials', 401);
@@ -42,7 +37,7 @@ export const login = async (
     admin.lastLoginAt = new Date();
     await admin.save();
 
-    const token = generateAdminToken(admin._id.toString(), admin.role);
+    const token = generateAdminToken(admin._id.toString());
 
     sendSuccess(res, {
       token,
@@ -50,8 +45,6 @@ export const login = async (
         id: admin._id.toString(),
         username: admin.username,
         displayName: admin.displayName,
-        avatarUrl: admin.avatarUrl,
-        role: admin.role,
       },
     });
   } catch (error) {
@@ -88,8 +81,6 @@ export const getMe = async (
       id: admin._id.toString(),
       username: admin.username,
       displayName: admin.displayName,
-      avatarUrl: admin.avatarUrl,
-      role: admin.role,
     });
   } catch (error) {
     next(error);

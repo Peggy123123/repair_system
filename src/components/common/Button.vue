@@ -90,7 +90,7 @@ const variantClasses = computed(() => {
     secondary: 'bg-gray-600 text-white hover:bg-gray-700',
     outline: 'border-2 border-primary text-primary hover:bg-primary/10',
     danger: 'bg-red-600 text-white hover:bg-red-700',
-    text: 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
+    text: 'text-gray-700 hover:text-textColor hover:bg-gray-100'
   }
   return variants[props.variant]
 })

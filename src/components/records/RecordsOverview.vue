@@ -4,7 +4,7 @@
 
   <template v-else>
     <div class="mb-4">
-      <h2 class="text-2xl font-bold text-gray-900">維修紀錄</h2>
+      <h2 class="text-2xl font-bold text-textColor">維修紀錄</h2>
       <p class="mt-1 text-sm text-gray-600">查看您的維修申請狀態與回覆</p>
     </div>
 
@@ -47,7 +47,9 @@ const isLoading = ref(true)
 
 onMounted(async () => {
   try {
-    userOrders.value = await getMyOrders()
+    // 載入大量資料用於統計（適合訂單量 < 1000）
+    const result = await getMyOrders({ limit: 1000 })
+    userOrders.value = result.items
   } catch {
     // API 錯誤
   } finally {

@@ -6,9 +6,6 @@ export interface IAdmin extends Document {
   username: string;
   password: string;
   displayName: string;
-  avatarUrl: string;
-  role: 'super_admin' | 'admin' | 'moderator';
-  status: 'active' | 'inactive';
   createdAt: Date;
   updatedAt: Date;
   lastLoginAt: Date;
@@ -33,20 +30,6 @@ const adminSchema = new Schema<IAdmin>(
       type: String,
       required: true,
       trim: true,
-    },
-    avatarUrl: {
-      type: String,
-      default: '',
-    },
-    role: {
-      type: String,
-      enum: ['super_admin', 'admin', 'moderator'],
-      default: 'admin',
-    },
-    status: {
-      type: String,
-      enum: ['active', 'inactive'],
-      default: 'active',
     },
     lastLoginAt: {
       type: Date,
@@ -79,9 +62,5 @@ adminSchema.methods.comparePassword = async function (
 ): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
 };
-
-// Indexes (username already has unique index)
-adminSchema.index({ role: 1 });
-adminSchema.index({ status: 1 });
 
 export const Admin = mongoose.model<IAdmin>('Admin', adminSchema);

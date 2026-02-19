@@ -8,7 +8,7 @@
         />
       </div>
       
-      <h3 class="text-lg leading-6 font-medium text-gray-900 mb-2">
+      <h3 class="text-lg leading-6 font-medium text-textColor mb-2">
         申請提交成功！
       </h3>
       

@@ -54,7 +54,6 @@ export const mockAdmins: Admin[] = [
     displayName: '系統管理員',
     avatarUrl: 'https://via.placeholder.com/100x100',
     role: 'super_admin',
-    status: 'active',
     lastLoginAt: '2024-01-15T10:30:00Z'
   },
   {
@@ -63,7 +62,6 @@ export const mockAdmins: Admin[] = [
     displayName: '維修經理',
     avatarUrl: 'https://via.placeholder.com/100x100',
     role: 'admin',
-    status: 'active',
     lastLoginAt: '2024-01-14T09:00:00Z'
   }
 ]

@@ -4,6 +4,8 @@ export interface User {
   lineUserId: string | null
   displayName: string
   avatarUrl: string
+  points?: number
+  memberSince?: string
 }
 
 // 維修狀態類型
@@ -29,6 +31,8 @@ export interface RepairOrder {
   supplements?: RepairSupplement[] // 補充描述記錄
   repairContent?: string // 維修內容 (管理員填寫)
   notes?: string // 備註 (管理員填寫)
+  isPrinted?: boolean // 是否已印工單
+  replyCount?: number // 回覆次數
   status: RepairStatus
   createdAt: string
   updatedAt: string

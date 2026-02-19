@@ -23,7 +23,7 @@
         icon="exclamation-triangle"
         class="mx-auto h-12 w-12 text-gray-400"
       />
-      <h3 class="mt-2 text-sm font-medium text-gray-900">找不到此維修申請</h3>
+      <h3 class="mt-2 text-sm font-medium text-textColor">找不到此維修申請</h3>
       <p class="mt-1 text-sm text-gray-500">請檢查連結是否正確</p>
     </div>
 
@@ -62,19 +62,19 @@
             >
               {{ statusConfig.label }}
             </span>
-            <span class="text-lg font-medium text-gray-900">{{ order.category }}</span>
+            <span class="text-lg font-medium text-textColor">{{ order.category }}</span>
           </div>
 
           <div class="mb-4">
             <div class="bg-gray-50 rounded-lg p-3 space-y-4">
-              <h4 class="text-sm font-semibold text-gray-900"><span class="bg-red-600/20 text-primary px-2 py-1 rounded-md text-sm">主題</span> {{ order.title }}</h4>
+              <h4 class="text-sm font-semibold text-textColor"><span class="bg-red-600/20 text-primary px-2 py-1 rounded-md text-sm">主題</span> {{ order.title }}</h4>
               <p class="text-sm text-gray-700 whitespace-pre-wrap"><span class="bg-red-600/20 text-primary px-2 py-1 rounded-md text-sm">描述</span> {{ order.description }}</p>
             </div>
           </div>
 
           <!-- 附件圖片 -->
           <div v-if="hasAttachments" class="mb-6">
-            <h4 class="text-lg font-medium text-gray-900 mb-3">附件圖片</h4>
+            <h4 class="text-lg font-medium text-textColor mb-3">附件圖片</h4>
             <div class="bg-gray-50 rounded-lg p-4">
               <!-- 多張圖片網格顯示 -->
               <div v-if="attachmentUrls.length > 1" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -118,7 +118,7 @@
       <!-- 補充描述歷史卡片 -->
       <div v-if="order.supplements && order.supplements.length > 0" class="bg-white shadow rounded-lg overflow-hidden">
         <div class="px-4 py-5 sm:p-6">
-          <h4 class="text-lg font-medium text-gray-900 mb-4">補充描述</h4>
+          <h4 class="text-lg font-medium text-textColor mb-4">補充描述</h4>
           <div class="space-y-4">
             <div
               v-for="supplement in order.supplements"
@@ -128,7 +128,7 @@
               <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center space-x-2">
                   <font-awesome-icon icon="user" class="text-primary" />
-                  <span class="text-sm font-medium text-gray-900">使用者補充</span>
+                  <span class="text-sm font-medium text-textColor">使用者補充</span>
                 </div>
                 <span class="text-sm text-gray-500">{{ formatDate(supplement.createdAt) }}</span>
               </div>
@@ -169,7 +169,7 @@
         class="bg-white shadow rounded-lg overflow-hidden"
       >
         <div class="px-4 py-5 sm:p-6">
-          <h4 class="text-lg font-medium text-gray-900 mb-4">補充描述</h4>
+          <h4 class="text-lg font-medium text-textColor mb-4">補充描述</h4>
           <div class="space-y-4">
             <!-- 文字描述 -->
             <div>
@@ -263,7 +263,7 @@
       <!-- 管理員回覆區域 -->
       <div v-if="replies.length > 0" class="bg-white shadow rounded-lg overflow-hidden">
         <div class="px-4 py-5 sm:p-6">
-          <h4 class="text-lg font-medium text-gray-900 mb-4">管理員回覆</h4>
+          <h4 class="text-lg font-medium text-textColor mb-4">管理員回覆</h4>
           <div class="space-y-4">
             <div
               v-for="reply in replies"
@@ -273,7 +273,7 @@
               <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center space-x-2">
                   <font-awesome-icon icon="user-shield" class="text-blue-600" />
-                  <span class="text-sm font-medium text-gray-900">管理員</span>
+                  <span class="text-sm font-medium text-textColor">管理員</span>
                 </div>
                 <span class="text-sm text-gray-500">{{ formatDate(reply.createdAt) }}</span>
               </div>
@@ -356,7 +356,7 @@
     >
       <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4" @click.stop>
         <div class="px-6 py-4 border-b border-gray-200">
-          <h3 class="text-lg font-medium text-gray-900">確認取消維修申請</h3>
+          <h3 class="text-lg font-medium text-textColor">確認取消維修申請</h3>
         </div>
         <div class="px-6 py-4">
           <p class="text-sm text-gray-600 mb-4">

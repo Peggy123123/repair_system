@@ -5,11 +5,22 @@ import type {
   RepairSupplement,
   RepairOrderWithUser
 } from '@/types/frontend'
-import type { ApiRepairOrder, ApiReply, ApiRepairOrderWithUser, ApiUser, ApiAdmin, DashboardStats } from '@/types/api'
+import type {
+  ApiRepairOrder,
+  ApiReply,
+  ApiRepairOrderWithUser,
+  ApiUser,
+  ApiAdmin,
+  DashboardStats,
+  PaginatedResponse
+} from '@/types/api'
 import { request, getAuthToken, setAuthToken, removeAuthToken } from './service'
 
 // Re-export 供外部使用
 export { ApiError, getAuthToken, setAuthToken, removeAuthToken } from './service'
+export type { DashboardStats, PaginatedResponse } from '@/types/api'
+export type { RepairOrderWithUser, User } from '@/types/frontend'
+export type { Admin } from '@/types/admin'
 
 // ─── Transform 函數 ───
 // transformRepairOrder（前台/後台共用）- API 維修訂單 → 前端型別
@@ -30,6 +41,8 @@ export function transformRepairOrder(api: ApiRepairOrder): RepairOrder {
     })) as RepairSupplement[],
     repairContent: api.repairContent,
     notes: api.notes,
+    isPrinted: api.isPrinted,
+    replyCount: api.replyCount,
     status: api.status as RepairStatus,
     createdAt: api.createdAt,
     updatedAt: api.updatedAt,
@@ -171,10 +184,26 @@ export async function changeAdminPassword(currentPassword: string, newPassword: 
 
 // ─── 維修訂單 ───
 // getMyOrders（前台）- 取得目前使用者的維修訂單列表
-export async function getMyOrders(status?: string): Promise<RepairOrder[]> {
-  const query = status ? `?status=${status}` : ''
-  const result = await request<ApiRepairOrder[]>(`/repairs${query}`)
-  return result.map(transformRepairOrder)
+export async function getMyOrders(params?: {
+  status?: string
+  page?: number
+  limit?: number
+}): Promise<PaginatedResponse<RepairOrder>> {
+  const searchParams = new URLSearchParams()
+  if (params?.status) searchParams.append('status', params.status)
+  if (params?.page) searchParams.append('page', params.page.toString())
+  if (params?.limit) searchParams.append('limit', params.limit.toString())
+
+  const query = searchParams.toString() ? `?${searchParams.toString()}` : ''
+  const result = await request<PaginatedResponse<ApiRepairOrder>>(`/repairs${query}`)
+
+  return {
+    items: result.items.map(transformRepairOrder),
+    total: result.total,
+    page: result.page,
+    limit: result.limit,
+    totalPages: result.totalPages
+  }
 }
 
 // getOrderById（前台）- 依 ID 取得單筆維修訂單
@@ -224,17 +253,48 @@ export async function getOrderReplies(id: string, isAdmin = false): Promise<Repl
 }
 
 // getAllOrders（後台）- 取得全部維修訂單（可依狀態、使用者篩選）
-export async function getAllOrders(params?: { status?: string; userId?: string }): Promise<RepairOrderWithUser[]> {
+export async function getAllOrders(params?: {
+  status?: string
+  userId?: string
+  deviceType?: string
+  category?: string
+  keyword?: string
+  startDate?: string
+  endDate?: string
+  isPrinted?: boolean
+  page?: number
+  limit?: number
+}): Promise<PaginatedResponse<RepairOrderWithUser>> {
   const query = new URLSearchParams()
   if (params?.status) query.append('status', params.status)
   if (params?.userId) query.append('userId', params.userId)
+  if (params?.deviceType) query.append('deviceType', params.deviceType)
+  if (params?.category) query.append('category', params.category)
+  if (params?.keyword) query.append('keyword', params.keyword)
+  if (params?.startDate) query.append('startDate', params.startDate)
+  if (params?.endDate) query.append('endDate', params.endDate)
+  if (params?.isPrinted !== undefined) query.append('isPrinted', params.isPrinted.toString())
+  if (params?.page) query.append('page', params.page.toString())
+  if (params?.limit) query.append('limit', params.limit.toString())
   const queryString = query.toString() ? `?${query.toString()}` : ''
-  const result = await request<ApiRepairOrderWithUser[]>(
+  const result = await request<{
+    items: ApiRepairOrderWithUser[]
+    total: number
+    page: number
+    limit: number
+    totalPages: number
+  }>(
     `/repairs/admin/all${queryString}`,
     {},
     true
   )
-  return result.map(transformRepairOrderWithUser)
+  return {
+    items: result.items.map(transformRepairOrderWithUser),
+    total: result.total,
+    page: result.page,
+    limit: result.limit,
+    totalPages: result.totalPages,
+  }
 }
 
 // updateOrder（後台）- 更新維修訂單（狀態或內容）
@@ -296,8 +356,38 @@ export async function deleteOrderReply(orderId: string, replyId: string): Promis
 }
 
 // getUsers（後台）- 取得前台使用者列表
-export async function getUsers() {
-  return request<ApiUser[]>('/users', {}, true)
+export async function getUsers(params?: {
+  page?: number
+  limit?: number
+  keyword?: string
+  startDate?: string
+  endDate?: string
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+}): Promise<PaginatedResponse<ApiUser>> {
+  const query = new URLSearchParams()
+  if (params?.page) query.append('page', params.page.toString())
+  if (params?.limit) query.append('limit', params.limit.toString())
+  if (params?.keyword) query.append('keyword', params.keyword)
+  if (params?.startDate) query.append('startDate', params.startDate)
+  if (params?.endDate) query.append('endDate', params.endDate)
+  if (params?.sortBy) query.append('sortBy', params.sortBy)
+  if (params?.sortOrder) query.append('sortOrder', params.sortOrder)
+  const queryString = query.toString() ? `?${query.toString()}` : ''
+  const result = await request<{
+    items: ApiUser[]
+    total: number
+    page: number
+    limit: number
+    totalPages: number
+  }>(`/users${queryString}`, {}, true)
+  return {
+    items: result.items,
+    total: result.total,
+    page: result.page,
+    limit: result.limit,
+    totalPages: result.totalPages,
+  }
 }
 
 // getUserById（後台）- 取得單一前台使用者資料
@@ -306,19 +396,55 @@ export async function getUserById(id: string) {
 }
 
 // getUserOrders（後台）- 取得指定使用者及其維修訂單列表
-export async function getUserOrders(id: string) {
+export async function getUserOrders(
+  id: string,
+  params?: {
+    status?: string
+    deviceType?: string
+    category?: string
+    keyword?: string
+    startDate?: string
+    endDate?: string
+    isPrinted?: boolean
+    page?: number
+    limit?: number
+  }
+): Promise<{ user: ApiUser; orders: PaginatedResponse<RepairOrder> }> {
+  const query = new URLSearchParams()
+  if (params?.status) query.append('status', params.status)
+  if (params?.deviceType) query.append('deviceType', params.deviceType)
+  if (params?.category) query.append('category', params.category)
+  if (params?.keyword) query.append('keyword', params.keyword)
+  if (params?.startDate) query.append('startDate', params.startDate)
+  if (params?.endDate) query.append('endDate', params.endDate)
+  if (params?.isPrinted !== undefined) query.append('isPrinted', params.isPrinted.toString())
+  if (params?.page) query.append('page', params.page.toString())
+  if (params?.limit) query.append('limit', params.limit.toString())
+  const queryString = query.toString() ? `?${query.toString()}` : ''
   const result = await request<{
     user: ApiUser
-    orders: ApiRepairOrder[]
-  }>(`/users/${id}/orders`, {}, true)
+    orders: {
+      items: ApiRepairOrder[]
+      total: number
+      page: number
+      limit: number
+      totalPages: number
+    }
+  }>(`/users/${id}/orders${queryString}`, {}, true)
   return {
     user: result.user,
-    orders: result.orders.map(transformRepairOrder),
+    orders: {
+      items: result.orders.items.map(transformRepairOrder),
+      total: result.orders.total,
+      page: result.orders.page,
+      limit: result.orders.limit,
+      totalPages: result.orders.totalPages,
+    },
   }
 }
 
 // updateUser（後台）- 更新前台使用者資料
-export async function updateUser(id: string, data: { displayName?: string; status?: string }) {
+export async function updateUser(id: string, data: { displayName?: string; status?: string; points?: number }) {
   return request<ApiUser>(
     `/users/${id}`,
     {

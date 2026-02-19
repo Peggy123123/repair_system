@@ -19,6 +19,8 @@ export interface ApiRepairOrder {
   supplements: ApiSupplement[]
   repairContent?: string
   notes?: string
+  isPrinted?: boolean
+  replyCount?: number
   status: string
   createdAt: string
   updatedAt: string
@@ -49,6 +51,8 @@ export interface ApiUser {
   displayName: string
   avatarUrl: string
   status: 'active' | 'inactive'
+  points: number
+  memberSince: string
   createdAt: string
   lastLoginAt: string | null
 }
@@ -58,9 +62,6 @@ export interface ApiAdmin {
   id: string
   username: string
   displayName: string
-  avatarUrl: string
-  role: 'super_admin' | 'admin' | 'moderator'
-  status: 'active' | 'inactive'
   createdAt: string
   lastLoginAt: string | null
 }
@@ -73,5 +74,14 @@ export interface DashboardStats {
   statusCounts: Record<string, number>
   deviceTypeCounts: Record<string, number>
   categoryStats: { category: string; count: number }[]
+}
+
+// 分頁響應
+export interface PaginatedResponse<T> {
+  items: T[]
+  total: number
+  page: number
+  limit: number
+  totalPages: number
 }
 

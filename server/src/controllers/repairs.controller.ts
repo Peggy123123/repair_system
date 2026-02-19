@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
 import { RepairOrder } from '../models/RepairOrder.js';
 import { User } from '../models/User.js';
+import { Reply } from '../models/Reply.js';
 import { sendSuccess, sendError, sendValidationError } from '../utils/response.utils.js';
 import { generateWorkOrderPDF } from '../utils/pdfGenerator.js';
 
@@ -17,15 +18,26 @@ export const getMyRepairs = async (
       return;
     }
 
-    const { status } = req.query;
+    const { status, page = '1', limit = '10' } = req.query;
 
     const query: Record<string, unknown> = { userId: req.user.id };
     if (status && typeof status === 'string') {
       query.status = status;
     }
 
+    // Parse pagination parameters
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = parseInt(limit as string, 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Get total count
+    const total = await RepairOrder.countDocuments(query);
+
+    // Get paginated repairs
     const repairs = await RepairOrder.find(query)
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum)
       .lean();
 
     const formattedRepairs = repairs.map((r) => ({
@@ -40,12 +52,19 @@ export const getMyRepairs = async (
       supplements: r.supplements,
       repairContent: r.repairContent || '',
       notes: r.notes || '',
+      isPrinted: r.isPrinted || false,
       status: r.status,
       createdAt: r.createdAt.toISOString(),
       updatedAt: r.updatedAt.toISOString(),
     }));
 
-    sendSuccess(res, formattedRepairs);
+    sendSuccess(res, {
+      items: formattedRepairs,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
+    });
   } catch (error) {
     next(error);
   }
@@ -107,6 +126,7 @@ export const getRepairById = async (
         supplements: repair.supplements,
         repairContent: repair.repairContent || '',
         notes: repair.notes || '',
+        isPrinted: repair.isPrinted || false,
         status: repair.status,
         createdAt: repair.createdAt.toISOString(),
         updatedAt: repair.updatedAt.toISOString(),
@@ -124,6 +144,7 @@ export const getRepairById = async (
         supplements: repair.supplements,
         repairContent: repair.repairContent || '',
         notes: repair.notes || '',
+        isPrinted: repair.isPrinted || false,
         status: repair.status,
         createdAt: repair.createdAt.toISOString(),
         updatedAt: repair.updatedAt.toISOString(),
@@ -181,6 +202,7 @@ export const createRepair = async (
         attachmentUrls: repair.attachmentUrls,
         supplements: repair.supplements,
         repairContent: repair.repairContent || '',
+        isPrinted: repair.isPrinted || false,
         status: repair.status,
         createdAt: repair.createdAt.toISOString(),
         updatedAt: repair.updatedAt.toISOString(),
@@ -248,6 +270,7 @@ export const addSupplement = async (
       supplements: repair.supplements,
       repairContent: repair.repairContent || '',
       notes: repair.notes || '',
+      isPrinted: repair.isPrinted || false,
       status: repair.status,
       createdAt: repair.createdAt.toISOString(),
       updatedAt: repair.updatedAt.toISOString(),
@@ -264,44 +287,122 @@ export const getAllRepairs = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { status, userId } = req.query;
+    const {
+      status,
+      userId,
+      deviceType,
+      category,
+      keyword,
+      startDate,
+      endDate,
+      isPrinted,
+      page = '1',
+      limit = '10'
+    } = req.query;
 
     const query: Record<string, unknown> = {};
+
+    // Status filter
     if (status && typeof status === 'string') {
       query.status = status;
     }
+
+    // User ID filter
     if (userId && typeof userId === 'string') {
       query.userId = userId;
     }
 
+    // Device type filter
+    if (deviceType && typeof deviceType === 'string') {
+      query.deviceType = deviceType;
+    }
+
+    // Category filter
+    if (category && typeof category === 'string') {
+      query.category = category;
+    }
+
+    // Is printed filter
+    if (isPrinted && typeof isPrinted === 'string') {
+      query.isPrinted = isPrinted === 'true';
+    }
+
+    // Keyword search (title, description, supplements.content)
+    if (keyword && typeof keyword === 'string') {
+      query.$or = [
+        { title: { $regex: keyword, $options: 'i' } },
+        { description: { $regex: keyword, $options: 'i' } },
+        { 'supplements.content': { $regex: keyword, $options: 'i' } }
+      ];
+    }
+
+    // Date range filter
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate && typeof startDate === 'string') {
+        query.createdAt = { ...query.createdAt as object, $gte: new Date(startDate) };
+      }
+      if (endDate && typeof endDate === 'string') {
+        // Add 1 day to include the end date
+        const end = new Date(endDate);
+        end.setDate(end.getDate() + 1);
+        query.createdAt = { ...query.createdAt as object, $lt: end };
+      }
+    }
+
+    // Parse pagination parameters
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = parseInt(limit as string, 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Get total count
+    const total = await RepairOrder.countDocuments(query);
+
+    // Get paginated repairs
     const repairs = await RepairOrder.find(query)
       .populate('userId', 'displayName avatarUrl')
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum)
       .lean();
 
-    const formattedRepairs = repairs.map((r) => {
-      const user = r.userId as unknown as { _id: string; displayName: string; avatarUrl: string } | null;
-      return {
-        id: r._id.toString(),
-        userId: user?._id?.toString() || '',
-        userName: user?.displayName || 'Unknown',
-        userAvatar: user?.avatarUrl || '',
-        category: r.category,
-        title: r.title,
-        description: r.description,
-        deviceType: r.deviceType,
-        attachmentUrl: r.attachmentUrl,
-        attachmentUrls: r.attachmentUrls,
-        supplements: r.supplements,
-        repairContent: r.repairContent || '',
-        notes: r.notes || '',
-        status: r.status,
-        createdAt: r.createdAt.toISOString(),
-        updatedAt: r.updatedAt.toISOString(),
-      };
-    });
+    // Format repairs with reply counts
+    const formattedRepairs = await Promise.all(
+      repairs.map(async (r) => {
+        const user = r.userId as unknown as { _id: string; displayName: string; avatarUrl: string } | null;
+        // Count replies for this repair order
+        const replyCount = await Reply.countDocuments({ repairOrderId: r._id });
 
-    sendSuccess(res, formattedRepairs);
+        return {
+          id: r._id.toString(),
+          userId: typeof user === 'object' && user?._id ? user._id.toString() : r.userId?.toString() || '',
+          userName: typeof user === 'object' && user?.displayName ? user.displayName : 'Unknown',
+          userAvatar: typeof user === 'object' && user?.avatarUrl ? user.avatarUrl : '',
+          category: r.category,
+          title: r.title,
+          description: r.description,
+          deviceType: r.deviceType,
+          attachmentUrl: r.attachmentUrl || '',
+          attachmentUrls: r.attachmentUrls || [],
+          supplements: r.supplements || [],
+          repairContent: r.repairContent || '',
+          notes: r.notes || '',
+          isPrinted: r.isPrinted || false,
+          replyCount,
+          status: r.status,
+          createdAt: r.createdAt ? new Date(r.createdAt).toISOString() : new Date().toISOString(),
+          updatedAt: r.updatedAt ? new Date(r.updatedAt).toISOString() : new Date().toISOString(),
+        };
+      })
+    );
+
+    sendSuccess(res, {
+      items: formattedRepairs,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
+    });
   } catch (error) {
     next(error);
   }
@@ -355,6 +456,7 @@ export const updateRepair = async (
       supplements: repair.supplements,
       repairContent: repair.repairContent || '',
       notes: repair.notes || '',
+      isPrinted: repair.isPrinted || false,
       status: repair.status,
       createdAt: repair.createdAt.toISOString(),
       updatedAt: repair.updatedAt.toISOString(),
@@ -436,6 +538,9 @@ export const generatePDF = async (
       description: repair.description,
       repairContent: repair.repairContent || '',
     });
+
+    // 更新 isPrinted 狀態
+    await RepairOrder.findByIdAndUpdate(req.params.id, { isPrinted: true });
 
     // 生成檔名：維修工單_使用者名稱_列印日期
     const now = new Date();

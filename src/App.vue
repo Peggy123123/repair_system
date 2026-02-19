@@ -44,7 +44,7 @@
         <div class="flex flex-col h-full">
           <!-- 選單標題 -->
           <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-semibold text-gray-900">選單</h2>
+            <h2 class="text-lg font-semibold text-textColor">選單</h2>
           </div>
           
           <!-- 選單項目 -->
@@ -53,14 +53,14 @@
               <router-link 
                 to="/form" 
                 @click="closeMobileMenu"
-                class="block px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg text-base font-medium transition-colors"
+                class="block px-4 py-3 text-gray-700 hover:text-textColor hover:bg-gray-100 rounded-lg text-base font-medium transition-colors"
               >
                 申請維修
               </router-link>
               <router-link
                 to="/my-orders"
                 @click="closeMobileMenu"
-                class="block px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg text-base font-medium transition-colors"
+                class="block px-4 py-3 text-gray-700 hover:text-textColor hover:bg-gray-100 rounded-lg text-base font-medium transition-colors"
               >
                 維修紀錄
               </router-link>

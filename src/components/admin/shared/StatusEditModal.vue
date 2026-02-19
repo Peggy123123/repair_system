@@ -14,7 +14,7 @@
       >
         <!-- 標題列 -->
         <div class="flex items-center justify-between p-6 border-b border-gray-200">
-          <h3 class="text-lg font-semibold text-gray-900">編輯狀態</h3>
+          <h3 class="text-lg font-semibold text-textColor">編輯狀態</h3>
           <button
             @click="closeModal"
             class="text-gray-400 hover:text-gray-600 transition-colors"

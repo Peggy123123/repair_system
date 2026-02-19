@@ -100,13 +100,15 @@ export const mockReplies: Reply[] = [
     repairOrderId: '2',
     adminId: 'admin1',
     content: '建議您先嘗試進入安全模式，如果問題持續，我們可以安排現場檢測。',
-    createdAt: '2024-01-14T16:45:00Z'
+    createdAt: '2024-01-14T16:45:00Z',
+    updatedAt: '2024-01-14T16:45:00Z'
   },
   {
     id: '2',
     repairOrderId: '3',
     adminId: 'admin1',
     content: '系統重灌已完成，所有重要資料已備份並恢復。請測試系統功能是否正常。',
-    createdAt: '2024-01-13T15:30:00Z'
+    createdAt: '2024-01-13T15:30:00Z',
+    updatedAt: '2024-01-13T15:30:00Z'
   }
 ]

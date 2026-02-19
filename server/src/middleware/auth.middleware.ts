@@ -57,7 +57,7 @@ export const authenticateAdmin = (
 
   req.admin = {
     id: decoded.id,
-    role: decoded.role,
+    role: decoded.role || 'admin',
   };
 
   next();
@@ -98,7 +98,7 @@ export const authenticateAny = (
     };
     req.admin = {
       id: adminDecoded.id,
-      role: adminDecoded.role,
+      role: adminDecoded.role || 'admin',
     };
     next();
     return;

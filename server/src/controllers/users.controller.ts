@@ -3,30 +3,158 @@ import { validationResult } from 'express-validator';
 import { User } from '../models/User.js';
 import { Admin } from '../models/Admin.js';
 import { RepairOrder } from '../models/RepairOrder.js';
+import { Reply } from '../models/Reply.js';
 import { sendSuccess, sendError, sendValidationError } from '../utils/response.utils.js';
 
 // Get all users
 export const getUsers = async (
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const users = await User.find()
-      .sort({ createdAt: -1 })
-      .lean();
+    const {
+      page = '1',
+      limit = '10',
+      keyword,
+      startDate,
+      endDate,
+      sortBy,
+      sortOrder = 'desc'
+    } = req.query;
 
-    const formattedUsers = users.map((u) => ({
-      id: u._id.toString(),
-      lineUserId: u.lineUserId,
-      displayName: u.displayName,
-      avatarUrl: u.avatarUrl,
-      status: u.status,
-      createdAt: u.createdAt.toISOString(),
-      lastLoginAt: u.lastLoginAt?.toISOString() || null,
-    }));
+    // Parse pagination parameters
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = parseInt(limit as string, 10);
+    const skip = (pageNum - 1) * limitNum;
 
-    sendSuccess(res, formattedUsers);
+    // Build match query
+    const matchQuery: Record<string, unknown> = {};
+
+    // Keyword search (displayName, _id, lineUserId)
+    if (keyword && typeof keyword === 'string') {
+      matchQuery.$or = [
+        { displayName: { $regex: keyword, $options: 'i' } },
+        { lineUserId: { $regex: keyword, $options: 'i' } }
+      ];
+    }
+
+    // Date range filter (memberSince)
+    if (startDate || endDate) {
+      matchQuery.memberSince = {};
+      if (startDate && typeof startDate === 'string') {
+        matchQuery.memberSince = { ...matchQuery.memberSince as object, $gte: new Date(startDate) };
+      }
+      if (endDate && typeof endDate === 'string') {
+        // Add 1 day to include the end date
+        const end = new Date(endDate);
+        end.setDate(end.getDate() + 1);
+        matchQuery.memberSince = { ...matchQuery.memberSince as object, $lt: end };
+      }
+    }
+
+    // Build sort object
+    let sortObj: Record<string, 1 | -1> = { createdAt: -1 };
+    if (sortBy && typeof sortBy === 'string') {
+      const order = sortOrder === 'asc' ? 1 : -1;
+
+      if (sortBy === 'orderCount') {
+        // For orderCount, we'll use aggregation pipeline
+        sortObj = { orderCount: order };
+      } else if (sortBy === 'points') {
+        sortObj = { points: order };
+      } else if (sortBy === 'memberSince') {
+        sortObj = { memberSince: order };
+      } else {
+        sortObj = { createdAt: -1 };
+      }
+    }
+
+    // If sorting by orderCount, use aggregation pipeline
+    if (sortBy === 'orderCount') {
+      const pipeline = [
+        { $match: matchQuery },
+        {
+          $lookup: {
+            from: 'repairorders',
+            localField: '_id',
+            foreignField: 'userId',
+            as: 'orders'
+          }
+        },
+        {
+          $addFields: {
+            orderCount: { $size: '$orders' }
+          }
+        },
+        {
+          $project: {
+            orders: 0,
+            password: 0
+          }
+        },
+        { $sort: sortObj },
+        {
+          $facet: {
+            metadata: [{ $count: 'total' }],
+            data: [{ $skip: skip }, { $limit: limitNum }]
+          }
+        }
+      ];
+
+      const result = await User.aggregate(pipeline);
+      const total = result[0]?.metadata[0]?.total || 0;
+      const users = result[0]?.data || [];
+
+      const formattedUsers = users.map((u: any) => ({
+        id: u._id.toString(),
+        lineUserId: u.lineUserId,
+        displayName: u.displayName,
+        avatarUrl: u.avatarUrl,
+        status: u.status,
+        points: u.points,
+        memberSince: u.memberSince.toISOString(),
+        createdAt: u.createdAt.toISOString(),
+        lastLoginAt: u.lastLoginAt?.toISOString() || null,
+      }));
+
+      sendSuccess(res, {
+        items: formattedUsers,
+        total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum),
+      });
+    } else {
+      // Standard query for other sorts
+      const total = await User.countDocuments(matchQuery);
+
+      const users = await User.find(matchQuery)
+        .sort(sortObj)
+        .skip(skip)
+        .limit(limitNum)
+        .lean();
+
+      const formattedUsers = users.map((u) => ({
+        id: u._id.toString(),
+        lineUserId: u.lineUserId,
+        displayName: u.displayName,
+        avatarUrl: u.avatarUrl,
+        status: u.status,
+        points: u.points,
+        memberSince: u.memberSince.toISOString(),
+        createdAt: u.createdAt.toISOString(),
+        lastLoginAt: u.lastLoginAt?.toISOString() || null,
+      }));
+
+      sendSuccess(res, {
+        items: formattedUsers,
+        total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum),
+      });
+    }
   } catch (error) {
     next(error);
   }
@@ -61,6 +189,8 @@ export const getUserById = async (
       displayName: user.displayName,
       avatarUrl: user.avatarUrl,
       status: user.status,
+      points: user.points,
+      memberSince: user.memberSince.toISOString(),
       createdAt: user.createdAt.toISOString(),
       lastLoginAt: user.lastLoginAt?.toISOString() || null,
     });
@@ -85,37 +215,124 @@ export const getUserOrders = async (
       return;
     }
 
+    const {
+      status,
+      deviceType,
+      category,
+      keyword,
+      startDate,
+      endDate,
+      isPrinted,
+      page = '1',
+      limit = '10'
+    } = req.query;
+
     const user = await User.findById(req.params.id);
     if (!user) {
       sendError(res, 'User not found', 404);
       return;
     }
 
-    const repairs = await RepairOrder.find({ userId: req.params.id })
-      .sort({ createdAt: -1 })
-      .lean();
+    const query: Record<string, unknown> = { userId: req.params.id };
 
-    const formattedRepairs = repairs.map((r) => ({
-      id: r._id.toString(),
-      userId: r.userId.toString(),
-      category: r.category,
-      title: r.title,
-      description: r.description,
-      deviceType: r.deviceType,
-      attachmentUrl: r.attachmentUrl,
-      attachmentUrls: r.attachmentUrls,
-      status: r.status,
-      createdAt: r.createdAt.toISOString(),
-      updatedAt: r.updatedAt.toISOString(),
-    }));
+    // Status filter
+    if (status && typeof status === 'string') {
+      query.status = status;
+    }
+
+    // Device type filter
+    if (deviceType && typeof deviceType === 'string') {
+      query.deviceType = deviceType;
+    }
+
+    // Category filter
+    if (category && typeof category === 'string') {
+      query.category = category;
+    }
+
+    // Is printed filter
+    if (isPrinted && typeof isPrinted === 'string') {
+      query.isPrinted = isPrinted === 'true';
+    }
+
+    // Keyword search (title, description, supplements.content)
+    if (keyword && typeof keyword === 'string') {
+      query.$or = [
+        { title: { $regex: keyword, $options: 'i' } },
+        { description: { $regex: keyword, $options: 'i' } },
+        { 'supplements.content': { $regex: keyword, $options: 'i' } }
+      ];
+    }
+
+    // Date range filter
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate && typeof startDate === 'string') {
+        query.createdAt = { ...query.createdAt as object, $gte: new Date(startDate) };
+      }
+      if (endDate && typeof endDate === 'string') {
+        // Add 1 day to include the end date
+        const end = new Date(endDate);
+        end.setDate(end.getDate() + 1);
+        query.createdAt = { ...query.createdAt as object, $lt: end };
+      }
+    }
+
+    // Parse pagination parameters
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = parseInt(limit as string, 10);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Get total count
+    const total = await RepairOrder.countDocuments(query);
+
+    // Get paginated repairs
+    const repairs = await RepairOrder.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum);
+
+    // Format repairs with reply counts
+    const formattedRepairs = await Promise.all(
+      repairs.map(async (r) => {
+        // Count replies for this repair order
+        const replyCount = await Reply.countDocuments({ repairOrderId: r._id });
+
+        return {
+          id: r._id.toString(),
+          userId: r.userId.toString(),
+          category: r.category,
+          title: r.title,
+          description: r.description,
+          deviceType: r.deviceType,
+          attachmentUrl: r.attachmentUrl,
+          attachmentUrls: r.attachmentUrls,
+          isPrinted: r.isPrinted || false,
+          replyCount,
+          status: r.status,
+          createdAt: r.createdAt.toISOString(),
+          updatedAt: r.updatedAt.toISOString(),
+        };
+      })
+    );
 
     sendSuccess(res, {
       user: {
         id: user._id.toString(),
         displayName: user.displayName,
         avatarUrl: user.avatarUrl,
+        lineUserId: user.lineUserId,
+        points: user.points,
+        memberSince: user.memberSince.toISOString(),
+        status: user.status,
       },
-      orders: formattedRepairs,
+      orders: {
+        items: formattedRepairs,
+        total,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(total / limitNum),
+      },
     });
   } catch (error) {
     next(error);
@@ -138,7 +355,7 @@ export const updateUser = async (
       return;
     }
 
-    const allowedUpdates = ['displayName', 'status'];
+    const allowedUpdates = ['displayName', 'status', 'points'];
     const updates: Record<string, unknown> = {};
 
     for (const key of allowedUpdates) {
@@ -164,6 +381,8 @@ export const updateUser = async (
       displayName: user.displayName,
       avatarUrl: user.avatarUrl,
       status: user.status,
+      points: user.points,
+      memberSince: user.memberSince.toISOString(),
       createdAt: user.createdAt.toISOString(),
       lastLoginAt: user.lastLoginAt?.toISOString() || null,
     });
@@ -188,9 +407,6 @@ export const getAdmins = async (
       id: a._id.toString(),
       username: a.username,
       displayName: a.displayName,
-      avatarUrl: a.avatarUrl,
-      role: a.role,
-      status: a.status,
       createdAt: a.createdAt.toISOString(),
       lastLoginAt: a.lastLoginAt?.toISOString() || null,
     }));
@@ -217,7 +433,7 @@ export const createAdmin = async (
       return;
     }
 
-    const { username, password, displayName, role } = req.body;
+    const { username, password, displayName } = req.body;
 
     const existingAdmin = await Admin.findOne({ username: username.toLowerCase() });
     if (existingAdmin) {
@@ -229,8 +445,6 @@ export const createAdmin = async (
       username,
       password,
       displayName,
-      role: role || 'admin',
-      status: 'active',
     });
 
     sendSuccess(
@@ -239,9 +453,6 @@ export const createAdmin = async (
         id: admin._id.toString(),
         username: admin.username,
         displayName: admin.displayName,
-        avatarUrl: admin.avatarUrl,
-        role: admin.role,
-        status: admin.status,
         createdAt: admin.createdAt.toISOString(),
       },
       'Admin created',
@@ -275,7 +486,7 @@ export const updateAdmin = async (
       return;
     }
 
-    const allowedUpdates = ['displayName', 'password', 'role', 'status', 'avatarUrl'];
+    const allowedUpdates = ['displayName', 'password'];
 
     for (const key of allowedUpdates) {
       if (req.body[key] !== undefined) {
@@ -289,9 +500,6 @@ export const updateAdmin = async (
       id: admin._id.toString(),
       username: admin.username,
       displayName: admin.displayName,
-      avatarUrl: admin.avatarUrl,
-      role: admin.role,
-      status: admin.status,
       createdAt: admin.createdAt.toISOString(),
       lastLoginAt: admin.lastLoginAt?.toISOString() || null,
     });

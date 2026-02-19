@@ -13,6 +13,10 @@ export const updateUserValidator = [
     .optional()
     .isIn(['active', 'inactive'])
     .withMessage('Invalid status'),
+  body('points')
+    .optional()
+    .isInt({ min: 0 })
+    .withMessage('Points must be a non-negative integer'),
 ];
 
 export const createAdminValidator = [

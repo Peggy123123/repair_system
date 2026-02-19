@@ -5,7 +5,7 @@
 
     <template v-else>
       <div class="mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">儀表板</h2>
+        <h2 class="text-2xl font-bold text-textColor">儀表板</h2>
       </div>
 
       <!-- 統計卡片 -->
@@ -22,7 +22,7 @@
             <div class="ml-5 w-0 flex-1">
               <dl>
                 <dt class="text-sm font-medium text-gray-500 truncate">總申請數</dt>
-                <dd class="text-lg font-medium text-gray-900">{{ allOrders.length }}</dd>
+                <dd class="text-lg font-medium text-textColor">{{ allOrders.length }}</dd>
               </dl>
             </div>
           </div>
@@ -41,7 +41,7 @@
             <div class="ml-5 w-0 flex-1">
               <dl>
                 <dt class="text-sm font-medium text-gray-500 truncate">待處理</dt>
-                <dd class="text-lg font-medium text-gray-900">{{ pendingOrders.length }}</dd>
+                <dd class="text-lg font-medium text-textColor">{{ pendingOrders.length }}</dd>
               </dl>
             </div>
           </div>
@@ -60,7 +60,7 @@
             <div class="ml-5 w-0 flex-1">
               <dl>
                 <dt class="text-sm font-medium text-gray-500 truncate">處理中</dt>
-                <dd class="text-lg font-medium text-gray-900">{{ inProgressOrders.length }}</dd>
+                <dd class="text-lg font-medium text-textColor">{{ inProgressOrders.length }}</dd>
               </dl>
             </div>
           </div>
@@ -79,7 +79,7 @@
             <div class="ml-5 w-0 flex-1">
               <dl>
                 <dt class="text-sm font-medium text-gray-500 truncate">維修中</dt>
-                <dd class="text-lg font-medium text-gray-900">{{ repairingOrders.length }}</dd>
+                <dd class="text-lg font-medium text-textColor">{{ repairingOrders.length }}</dd>
               </dl>
             </div>
           </div>
@@ -98,7 +98,7 @@
             <div class="ml-5 w-0 flex-1">
               <dl>
                 <dt class="text-sm font-medium text-gray-500 truncate">已完成</dt>
-                <dd class="text-lg font-medium text-gray-900">{{ completedOrders.length }}</dd>
+                <dd class="text-lg font-medium text-textColor">{{ completedOrders.length }}</dd>
               </dl>
             </div>
           </div>
@@ -109,7 +109,7 @@
     <!-- 最近申請 -->
     <div class="bg-white shadow rounded-lg">
       <div class="px-4 py-5 sm:p-6">
-        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">最近申請</h3>
+        <h3 class="text-lg leading-6 font-medium text-textColor mb-4">最近申請</h3>
 
         <div v-if="recentOrders.length === 0" class="text-center py-8">
           <p class="text-gray-500">尚無維修申請</p>
@@ -158,7 +158,8 @@ const isLoading = ref(true)
 
 onMounted(async () => {
   try {
-    allOrders.value = await getAllOrders()
+    const result = await getAllOrders({ limit: 9999 })
+    allOrders.value = result.items
   } catch {
     // API 錯誤
   } finally {

@@ -14,19 +14,19 @@
         {{ getStatusLabel(order.status) }}
       </span>
       <div v-if="variant === 'detailed'">
-        <h3 class="text-sm font-medium text-gray-900">{{ order.title }}</h3>
+        <h3 class="text-sm font-medium text-textColor">{{ order.title }}</h3>
         <p class="text-sm text-gray-500">分類：{{ order.category }}</p>
         <p v-if="order.deviceType" class="text-sm text-gray-500">
           機型： {{ getDeviceTypeName(order.deviceType) }}
         </p>
       </div>
       <template v-else>
-        <span class="text-sm font-medium text-gray-900">{{ order.title }}</span>
+        <span class="text-sm font-medium text-textColor">{{ order.title }}</span>
         <span class="text-sm text-gray-500">{{ order.category }}</span>
       </template>
     </div>
     <div :class="variant === 'simple' ? '' : 'text-right'">
-      <p :class="variant === 'simple' ? 'text-sm text-gray-500' : 'text-sm text-gray-900'">
+      <p :class="variant === 'simple' ? 'text-sm text-gray-500' : 'text-sm text-textColor'">
         {{ formatDate(order.createdAt) }}
       </p>
       <p v-if="variant === 'detailed'" class="text-xs text-gray-500">

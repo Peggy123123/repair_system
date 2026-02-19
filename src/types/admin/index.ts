@@ -5,9 +5,8 @@ export interface Admin {
   id: string
   username: string
   displayName: string
-  avatarUrl: string
-  role: 'super_admin' | 'admin' | 'moderator'
-  status: 'active' | 'inactive'
+  avatarUrl?: string
+  role?: 'super_admin' | 'admin' | 'moderator'
   lastLoginAt: string
 }
 

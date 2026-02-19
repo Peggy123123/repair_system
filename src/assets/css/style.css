@@ -6,6 +6,7 @@
 @layer base {
     html,
     body {
+        @apply text-textColor;
         font-family: "Noto Sans TC", sans-serif;
         scroll-behavior: smooth;
         -ms-overflow-style: none;
@@ -39,7 +40,7 @@
     h4,
     h5,
     h6 {
-        @apply font-bold;
+        @apply !text-textColor font-bold;
     }
 
     h2 {
@@ -53,4 +54,9 @@
     h4 {
         @apply text-[20px] lg:text-2xl;
     }
+}
+
+/* vue3-daterange-picker */
+.vue-daterange-picker {
+    width: 100%;
 }

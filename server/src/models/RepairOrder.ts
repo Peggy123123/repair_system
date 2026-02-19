@@ -18,6 +18,7 @@ export interface IRepairOrder extends Document {
   supplements: ISupplement[];
   repairContent: string;
   notes: string;
+  isPrinted: boolean;
   status: 'pending' | 'in_progress' | 'repairing' | 'completed' | 'cancelled';
   createdAt: Date;
   updatedAt: Date;
@@ -86,6 +87,10 @@ const repairOrderSchema = new Schema<IRepairOrder>(
     notes: {
       type: String,
       default: '',
+    },
+    isPrinted: {
+      type: Boolean,
+      default: false,
     },
     status: {
       type: String,

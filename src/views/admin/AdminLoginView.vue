@@ -5,7 +5,7 @@
         <div class="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-red-100">
           <font-awesome-icon icon="shield-alt" class="h-6 w-6 text-red-600" />
         </div>
-        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-textColor">
           管理後台登入
         </h2>
         <p class="mt-2 text-center text-sm text-gray-600">
@@ -22,7 +22,7 @@
               v-model="adminForm.username"
               type="text"
 
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-textColor rounded-t-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
               placeholder="管理員帳號"
             />
           </div>
@@ -33,7 +33,7 @@
               v-model="adminForm.password"
               type="password"
 
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-textColor rounded-b-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
               placeholder="密碼"
             />
           </div>
@@ -101,7 +101,6 @@ const handleAdminLogin = async () => {
       displayName: result.admin.displayName,
       avatarUrl: result.admin.avatarUrl,
       role: result.admin.role as Admin['role'],
-      status: 'active',
       lastLoginAt: new Date().toISOString()
     })
     router.push('/admin')

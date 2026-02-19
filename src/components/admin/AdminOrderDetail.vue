@@ -8,7 +8,7 @@
       <div class="mb-6">
         <button
           @click="goBack"
-          class="flex items-center text-sm text-gray-600 hover:text-gray-900"
+          class="flex items-center text-sm text-gray-600 hover:text-textColor"
         >
           <font-awesome-icon icon="arrow-left" class="mr-2 h-4 w-4" />
           返回訂單列表
@@ -22,7 +22,7 @@
       <div v-else>
       <!-- 訂單標題 -->
       <div class="mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">{{ order.title }}</h2>
+        <h2 class="text-2xl font-bold text-textColor">{{ order.title }}</h2>
         <p class="mt-1 text-sm text-gray-600">訂單編號: {{ order.id }}</p>
       </div>
 
@@ -32,105 +32,108 @@
         <div class="lg:col-span-2">
           <div class="bg-white shadow rounded-lg">
             <div class="px-4 py-5 sm:p-6">
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">訂單詳情</h3>
-                <button
-                  v-if="!isEditingOrderDetails"
-                  @click="startEditOrderDetails"
-                  class="p-1.5 text-gray-400 hover:text-blue-600 rounded-md hover:bg-gray-100"
-                  title="編輯"
-                >
-                  <font-awesome-icon icon="edit" class="h-4 w-4" />
-                </button>
-              </div>
+              <form @submit.prevent="submitOrderDetails">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-lg leading-6 font-medium text-textColor">訂單詳情</h3>
+                  <!-- 編輯模式：顯示取消/儲存按鈕 -->
+                  <div v-if="isEditingOrderDetails" class="flex items-center space-x-2">
+                    <button
+                      type="button"
+                      @click="cancelEditOrderDetails"
+                      class="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      取消
+                    </button>
+                    <button
+                      type="submit"
+                      :disabled="isSubmittingContent"
+                      class="px-3 py-1 text-xs font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50"
+                    >
+                      {{ isSubmittingContent ? '儲存中...' : '儲存' }}
+                    </button>
+                  </div>
+                  <!-- 顯示模式：顯示編輯按鈕 -->
+                  <button
+                    v-else
+                    type="button"
+                    @click="startEditOrderDetails"
+                    class="p-1.5 text-gray-400 hover:text-blue-600 rounded-md hover:bg-gray-100"
+                    title="編輯"
+                  >
+                    <font-awesome-icon icon="edit" class="h-4 w-4" />
+                  </button>
+                </div>
 
-              <!-- 顯示模式 -->
-              <div v-if="!isEditingOrderDetails">
                 <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                  <!-- 申請人（只讀） -->
                   <div>
                     <dt class="text-sm font-medium text-gray-500">申請人</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ order.userName || '未知使用者' }}</dd>
+                    <dd class="mt-1 text-sm text-textColor">{{ order.userName || '未知使用者' }}</dd>
                   </div>
+
+                  <!-- 機型（可編輯） -->
                   <div>
                     <dt class="text-sm font-medium text-gray-500">機型</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ getDeviceTypeName(order.deviceType) }}</dd>
+                    <dd v-if="!isEditingOrderDetails" class="mt-1 text-sm text-textColor">
+                      {{ getDeviceTypeName(order.deviceType) }}
+                    </dd>
+                    <select
+                      v-else
+                      v-model="editOrderForm.deviceType"
+                      required
+                      class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    >
+                      <option v-for="device in DEVICE_TYPES" :key="device.id" :value="device.id">
+                        {{ device.name }}
+                      </option>
+                    </select>
                   </div>
+
+                  <!-- 類別（可編輯） -->
                   <div>
                     <dt class="text-sm font-medium text-gray-500">類別</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ order.category }}</dd>
+                    <dd v-if="!isEditingOrderDetails" class="mt-1 text-sm text-textColor">
+                      {{ order.category }}
+                    </dd>
+                    <select
+                      v-else
+                      v-model="editOrderForm.category"
+                      required
+                      class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    >
+                      <option v-for="cat in REPAIR_SUB_CATEGORIES" :key="cat.id" :value="cat.name">
+                        {{ cat.name }}
+                      </option>
+                    </select>
                   </div>
+
+                  <!-- 申請時間（只讀） -->
                   <div>
                     <dt class="text-sm font-medium text-gray-500">申請時間</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ formatDate(order.createdAt) }}</dd>
+                    <dd class="mt-1 text-sm text-textColor">{{ formatDate(order.createdAt) }}</dd>
                   </div>
+
+                  <!-- 最後更新（只讀） -->
                   <div>
                     <dt class="text-sm font-medium text-gray-500">最後更新</dt>
-                    <dd class="mt-1 text-sm text-gray-900">{{ formatDate(order.updatedAt) }}</dd>
+                    <dd class="mt-1 text-sm text-textColor">{{ formatDate(order.updatedAt) }}</dd>
                   </div>
                 </dl>
 
+                <!-- 問題描述（可編輯） -->
                 <div class="mt-6">
                   <dt class="text-sm font-medium text-gray-500 mb-2">問題描述</dt>
-                  <dd class="text-sm text-gray-900 whitespace-pre-wrap bg-gray-50 p-4 rounded-md">
+                  <dd v-if="!isEditingOrderDetails" class="text-sm text-textColor whitespace-pre-wrap bg-gray-50 p-4 rounded-md">
                     {{ order.description }}
                   </dd>
-                </div>
-              </div>
-
-              <!-- 編輯模式 -->
-              <form v-else @submit.prevent="submitOrderDetails" class="space-y-4">
-                <div>
-                  <label for="edit-device-type" class="block text-sm font-medium text-gray-700 mb-1">機型</label>
-                  <select
-                    id="edit-device-type"
-                    v-model="editOrderForm.deviceType"
-                    required
-                    class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  >
-                    <option v-for="device in DEVICE_TYPES" :key="device.id" :value="device.id">
-                      {{ device.name }}
-                    </option>
-                  </select>
-                </div>
-                <div>
-                  <label for="edit-category" class="block text-sm font-medium text-gray-700 mb-1">類別</label>
-                  <select
-                    id="edit-category"
-                    v-model="editOrderForm.category"
-                    required
-                    class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  >
-                    <option v-for="cat in REPAIR_SUB_CATEGORIES" :key="cat.id" :value="cat.name">
-                      {{ cat.name }}
-                    </option>
-                  </select>
-                </div>
-                <div>
-                  <label for="edit-description" class="block text-sm font-medium text-gray-700 mb-1">問題描述</label>
                   <textarea
-                    id="edit-description"
+                    v-else
                     v-model="editOrderForm.description"
                     required
                     rows="4"
-                    class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
                     placeholder="請輸入問題描述..."
                   ></textarea>
-                </div>
-                <div class="flex justify-end space-x-3">
-                  <button
-                    type="button"
-                    @click="cancelEditOrderDetails"
-                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                  >
-                    取消
-                  </button>
-                  <button
-                    type="submit"
-                    :disabled="isSubmittingContent"
-                    class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {{ isSubmittingContent ? '儲存中...' : '儲存' }}
-                  </button>
                 </div>
               </form>
 
@@ -147,7 +150,7 @@
                       <span class="text-xs font-medium text-yellow-700">補充 #{{ index + 1 }}</span>
                       <span class="text-xs text-gray-500">{{ formatDate(supplement.createdAt) }}</span>
                     </div>
-                    <p v-if="supplement.content" class="text-sm text-gray-900 whitespace-pre-wrap">{{ supplement.content }}</p>
+                    <p v-if="supplement.content" class="text-sm text-textColor whitespace-pre-wrap">{{ supplement.content }}</p>
                     <div
                       v-if="supplement.attachmentUrls && supplement.attachmentUrls.length > 0"
                       class="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"
@@ -191,7 +194,7 @@
           <div class="bg-white shadow rounded-lg">
             <div class="px-4 py-5 sm:p-6">
               <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">狀態</h3>
+                <h3 class="text-lg leading-6 font-medium text-textColor">狀態</h3>
                 <Button
                   @click="openStatusModal"
                   text="編輯狀態"
@@ -215,7 +218,7 @@
           <!-- 操作 -->
           <div class="bg-white shadow rounded-lg">
             <div class="px-4 py-5 sm:p-6">
-              <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">操作</h3>
+              <h3 class="text-lg leading-6 font-medium text-textColor mb-4">操作</h3>
 
               <div class="space-y-3">
                 <button
@@ -237,10 +240,17 @@
                 </button>
                 <button
                   @click="printWorkOrder"
-                  class="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+                  class="w-full flex items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
                 >
-                  <font-awesome-icon icon="print" class="mr-2" />
-                  列印工單
+                  <span>
+                    <font-awesome-icon icon="print" class="mr-2" />
+                    列印工單
+                  </span>
+                  <font-awesome-icon
+                    v-if="order?.isPrinted"
+                    icon="check"
+                    class="h-4 w-4 text-green-600"
+                  />
                 </button>
               </div>
             </div>
@@ -251,7 +261,7 @@
       <!-- 回覆記錄 -->
       <div v-if="requestReplies.length > 0" class="bg-white shadow rounded-lg mb-6">
         <div class="px-4 py-5 sm:p-6">
-          <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">回覆記錄</h3>
+          <h3 class="text-lg leading-6 font-medium text-textColor mb-4">回覆記錄</h3>
 
           <div class="space-y-4">
             <div
@@ -262,7 +272,7 @@
               <!-- 顯示模式 -->
               <div v-if="editingReplyId !== reply.id">
                 <div class="flex justify-between mb-2">
-                  <span class="text-sm font-medium text-gray-900">管理員</span>
+                  <span class="text-sm font-medium text-textColor">管理員</span>
                   <div class="flex items-center space-x-2">
                     <button
                       @click="startEditReply(reply)"
@@ -320,7 +330,7 @@
       <!-- 回覆表單 -->
       <div v-if="showReplyForm" ref="replyFormRef" class="bg-white shadow rounded-lg mb-6">
         <div class="px-4 py-5 sm:p-6">
-          <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">新增回覆</h3>
+          <h3 class="text-lg leading-6 font-medium text-textColor mb-4">新增回覆</h3>
 
           <form @submit.prevent="submitReply" class="space-y-4">
             <div>
@@ -360,7 +370,7 @@
       <div v-if="order.repairContent || showRepairContentForm" ref="repairContentFormRef" class="bg-white shadow rounded-lg mb-6">
         <div class="px-4 py-5 sm:p-6">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">
+            <h3 class="text-lg leading-6 font-medium text-textColor">
               {{ order.repairContent && !isEditingRepairContent ? '維修內容' : '填寫維修內容' }}
             </h3>
             <!-- 顯示模式下的編輯/刪除 icon -->
@@ -428,7 +438,7 @@
       <div class="bg-white shadow rounded-lg mb-6">
         <div class="px-4 py-5 sm:p-6">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">備註</h3>
+            <h3 class="text-lg leading-6 font-medium text-textColor">備註</h3>
             <!-- 顯示模式下的編輯 icon -->
             <button
               v-if="!isEditingNotes"
@@ -700,6 +710,10 @@ const printWorkOrder = async () => {
 
   try {
     await generateOrderPDF(requestId, order.value.userName)
+    // 更新本地狀態
+    if (order.value) {
+      order.value = { ...order.value, isPrinted: true }
+    }
   } catch {
     console.error('PDF 下載失敗')
   }

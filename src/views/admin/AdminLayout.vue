@@ -5,7 +5,7 @@
       <div class="flex h-full flex-col">
         <!-- Logo -->
         <div class="flex h-16 items-center justify-center border-b border-gray-200">
-          <h1 class="text-xl font-bold text-gray-900">維修系統後台</h1>
+          <h1 class="text-xl font-bold text-textColor">維修系統後台</h1>
         </div>
         
         <!-- 選單項目 -->
@@ -13,7 +13,7 @@
           <router-link
             to="/admin"
             class="group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors"
-            :class="$route.path === '/admin' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
+            :class="$route.path === '/admin' ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-50 hover:text-textColor'"
           >
             <font-awesome-icon icon="chart-bar" class="mr-3 h-5 w-5" />
             儀表板
@@ -22,7 +22,7 @@
           <router-link
             to="/admin/orders"
             class="group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors"
-            :class="$route.path.startsWith('/admin/orders') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
+            :class="$route.path.startsWith('/admin/orders') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-50 hover:text-textColor'"
           >
             <font-awesome-icon icon="list" class="mr-3 h-5 w-5" />
             訂單
@@ -31,7 +31,7 @@
           <router-link
             to="/admin/users"
             class="group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors"
-            :class="$route.path.startsWith('/admin/users') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
+            :class="$route.path.startsWith('/admin/users') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-50 hover:text-textColor'"
           >
             <font-awesome-icon icon="users" class="mr-3 h-5 w-5" />
             使用者
@@ -40,7 +40,7 @@
           <router-link
             to="/admin/admins"
             class="group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors"
-            :class="$route.path.startsWith('/admin/admins') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
+            :class="$route.path.startsWith('/admin/admins') ? 'bg-primary/10 text-primary' : 'text-gray-600 hover:bg-gray-50 hover:text-textColor'"
           >
             <font-awesome-icon icon="user-shield" class="mr-3 h-5 w-5" />
             管理者
@@ -51,7 +51,7 @@
         <div class="border-t border-gray-200 p-4">
           <button
             @click="logout"
-            class="flex w-full items-center px-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900"
+            class="flex w-full items-center px-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-textColor"
           >
             <font-awesome-icon icon="sign-out-alt" class="mr-3 h-5 w-5" />
             登出
@@ -63,7 +63,7 @@
     <!-- 主要內容區域 -->
     <div class="pl-64">
       <main class="py-6">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto px-4 sm:px-6 lg:px-8">
           <router-view />
         </div>
       </main>

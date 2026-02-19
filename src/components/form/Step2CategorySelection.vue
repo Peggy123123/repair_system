@@ -1,7 +1,7 @@
 <template>
   <div class="bg-white shadow rounded-lg">
     <div class="px-4 py-5 sm:p-6">
-      <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+      <h3 class="text-lg leading-6 font-medium text-textColor mb-4">
         選擇分類
       </h3>
       

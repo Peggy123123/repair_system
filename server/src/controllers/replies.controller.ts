@@ -102,7 +102,7 @@ export const createReply = async (
       content,
     });
 
-    const admin = await Admin.findById(req.admin.id).select('displayName avatarUrl').lean();
+    const admin = await Admin.findById(req.admin.id).select('displayName').lean();
 
     sendSuccess(
       res,
@@ -111,7 +111,7 @@ export const createReply = async (
         repairOrderId: reply.repairOrderId.toString(),
         adminId: reply.adminId.toString(),
         adminName: admin?.displayName || 'Admin',
-        adminAvatar: admin?.avatarUrl || '',
+        adminAvatar: '',
         content: reply.content,
         createdAt: reply.createdAt.toISOString(),
         updatedAt: reply.updatedAt.toISOString(),
@@ -168,14 +168,14 @@ export const updateReply = async (
     reply.content = content;
     await reply.save();
 
-    const admin = await Admin.findById(reply.adminId).select('displayName avatarUrl').lean();
+    const admin = await Admin.findById(reply.adminId).select('displayName').lean();
 
     sendSuccess(res, {
       id: reply._id.toString(),
       repairOrderId: reply.repairOrderId.toString(),
       adminId: reply.adminId.toString(),
       adminName: admin?.displayName || 'Admin',
-      adminAvatar: admin?.avatarUrl || '',
+      adminAvatar: '',
       content: reply.content,
       createdAt: reply.createdAt.toISOString(),
       updatedAt: reply.updatedAt.toISOString(),

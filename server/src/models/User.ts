@@ -6,6 +6,8 @@ export interface IUser extends Document {
   displayName: string;
   avatarUrl: string;
   status: 'active' | 'inactive';
+  points: number;
+  memberSince: Date;
   createdAt: Date;
   updatedAt: Date;
   lastLoginAt: Date;
@@ -32,6 +34,19 @@ const userSchema = new Schema<IUser>(
       type: String,
       enum: ['active', 'inactive'],
       default: 'active',
+    },
+    points: {
+      type: Number,
+      default: 0,
+      min: 0,
+      validate: {
+        validator: Number.isInteger,
+        message: 'Points must be an integer',
+      },
+    },
+    memberSince: {
+      type: Date,
+      default: Date.now,
     },
     lastLoginAt: {
       type: Date,

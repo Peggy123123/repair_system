@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useFrontendUserStore } from '@/stores/frontendUser'
 import { useAdminStore } from '@/stores/admin'
+import { getCurrentUser, loginUserByLine } from '@/services/api'
+import { useLiff } from '@/composables/useLiff'
 import LoginView from '@/views/frontend/LoginView.vue'
 import FormView from '@/views/frontend/FormView.vue'
 import MyOrdersView from '@/views/frontend/MyOrdersView.vue'
@@ -129,39 +131,64 @@ const router = createRouter({
 })
 
 // 路由守衛
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to) => {
   const frontendUserStore = useFrontendUserStore()
   const adminStore = useAdminStore()
 
   // 前台路由需要前台使用者登入
   if (to.meta.requiresAuth && !to.meta.requiresAdmin) {
     if (!frontendUserStore.isLoggedIn) {
-      next('/')
-      return
+      // 嘗試用 localStorage JWT 恢復 session
+      try {
+        const user = await getCurrentUser()
+        frontendUserStore.setUser(user)
+      } catch {
+        // JWT 無效，嘗試 LIFF 自動登入
+        const { isLiffAvailable, isLiffLoggedIn, initLiff, getAccessToken } = useLiff()
+        if (isLiffAvailable) {
+          try {
+            await initLiff()
+            if (isLiffLoggedIn.value) {
+              const accessToken = getAccessToken()
+              if (accessToken) {
+                const result = await loginUserByLine(accessToken)
+                frontendUserStore.setUser({
+                  id: result.user.id,
+                  lineUserId: result.user.lineUserId,
+                  displayName: result.user.displayName,
+                  avatarUrl: result.user.avatarUrl
+                })
+              }
+            }
+          } catch {
+            // LIFF 自動登入失敗
+          }
+        }
+
+        // 仍未登入，導向登入頁
+        if (!frontendUserStore.isLoggedIn) {
+          return '/'
+        }
+      }
     }
   }
 
   // 後台路由需要管理員登入
   if (to.meta.requiresAdmin) {
     if (!adminStore.isLoggedIn) {
-      next('/admin/login')
-      return
+      return '/admin/login'
     }
   }
 
   // 如果前台使用者已登入但訪問前台登入頁
   if (to.name === 'login' && frontendUserStore.isLoggedIn) {
-    next('/form')
-    return
+    return '/form'
   }
 
   // 如果管理員已登入但訪問後台登入頁
   if (to.name === 'admin-login' && adminStore.isLoggedIn) {
-    next('/admin')
-    return
+    return '/admin'
   }
-
-  next()
 })
 
 export default router

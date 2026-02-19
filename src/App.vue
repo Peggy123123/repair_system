@@ -96,11 +96,13 @@ import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useFrontendUserStore } from '@/stores/frontendUser'
 import { logoutUser } from '@/services/api'
+import { useLiff } from '@/composables/useLiff'
 import Button from '@/components/common/Button.vue'
 
 const route = useRoute()
 const router = useRouter()
 const frontendUserStore = useFrontendUserStore()
+const { isLiffAvailable, logoutLiff } = useLiff()
 
 // 手機版選單狀態
 const isMobileMenuOpen = ref(false)
@@ -126,6 +128,9 @@ const handleLogout = async () => {
     // Ignore logout errors
   } finally {
     frontendUserStore.clearUser()
+    if (isLiffAvailable) {
+      logoutLiff()
+    }
     closeMobileMenu()
     router.push('/')
   }

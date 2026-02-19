@@ -22,6 +22,9 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build && npm run postbuild
+        env:
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_LINE_LIFF_ID: ${{ vars.VITE_LINE_LIFF_ID }}
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:

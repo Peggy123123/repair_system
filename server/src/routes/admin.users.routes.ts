@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import * as usersController from '../controllers/users.controller.js';
 import { authenticateAdmin } from '../middleware/auth.middleware.js';
-import { requireRole } from '../middleware/role.middleware.js';
 import {
   createAdminValidator,
   updateAdminValidator,
@@ -10,17 +9,17 @@ import {
 
 const router = Router();
 
-// Admin management (Super Admin access)
+// Admin management
 // GET /api/admin/users - Get all admins
-router.get('/', authenticateAdmin, requireRole('super_admin'), usersController.getAdmins);
+router.get('/', authenticateAdmin, usersController.getAdmins);
 
 // POST /api/admin/users - Create admin
-router.post('/', authenticateAdmin, requireRole('super_admin'), createAdminValidator, usersController.createAdmin);
+router.post('/', authenticateAdmin, createAdminValidator, usersController.createAdmin);
 
 // PATCH /api/admin/users/:id - Update admin
-router.patch('/:id', authenticateAdmin, requireRole('super_admin'), updateAdminValidator, usersController.updateAdmin);
+router.patch('/:id', authenticateAdmin, updateAdminValidator, usersController.updateAdmin);
 
 // DELETE /api/admin/users/:id - Delete admin
-router.delete('/:id', authenticateAdmin, requireRole('super_admin'), idParamValidator, usersController.deleteAdmin);
+router.delete('/:id', authenticateAdmin, idParamValidator, usersController.deleteAdmin);
 
 export default router;

@@ -37,9 +37,11 @@ function buildWorkOrderHTML(data: WorkOrderData): string {
 <html>
 <head>
   <meta charset="utf-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap">
   <style>
     body {
-      font-family: 'Microsoft JhengHei', 'PingFang TC', 'Noto Sans TC', 'Heiti TC', sans-serif;
+      font-family: 'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', sans-serif;
       padding: 40px 30px;
       color: #222;
       margin: 0;
@@ -216,6 +218,7 @@ export async function generateWorkOrderPDF(data: WorkOrderData): Promise<Buffer>
   try {
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'domcontentloaded' });
+    await page.evaluate('return document.fonts.ready');
 
     const pdfBuffer = await page.pdf({
       format: 'A4',

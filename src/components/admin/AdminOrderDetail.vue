@@ -240,14 +240,21 @@
                 </button>
                 <button
                   @click="printWorkOrder"
-                  class="w-full flex items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+                  :disabled="isPrinting"
+                  class="w-full flex items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span>
                     <font-awesome-icon icon="print" class="mr-2" />
                     列印工單
                   </span>
                   <font-awesome-icon
-                    v-if="order?.isPrinted"
+                    v-if="isPrinting"
+                    icon="spinner"
+                    spin
+                    class="h-4 w-4 text-gray-400"
+                  />
+                  <font-awesome-icon
+                    v-else-if="order?.isPrinted"
                     icon="check"
                     class="h-4 w-4 text-green-600"
                   />
@@ -705,17 +712,21 @@ const submitRepairContent = async () => {
   }
 }
 
-const printWorkOrder = async () => {
-  if (!order.value) return
+const isPrinting = ref(false)
 
+const printWorkOrder = async () => {
+  if (!order.value || isPrinting.value) return
+
+  isPrinting.value = true
   try {
     await generateOrderPDF(requestId, order.value.userName)
-    // 更新本地狀態
     if (order.value) {
       order.value = { ...order.value, isPrinted: true }
     }
   } catch {
     console.error('PDF 下載失敗')
+  } finally {
+    isPrinting.value = false
   }
 }
 

@@ -218,7 +218,7 @@ export async function generateWorkOrderPDF(data: WorkOrderData): Promise<Buffer>
   try {
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'domcontentloaded' });
-    await page.evaluate('return document.fonts.ready');
+    await page.evaluate('document.fonts.ready');
 
     const pdfBuffer = await page.pdf({
       format: 'A4',

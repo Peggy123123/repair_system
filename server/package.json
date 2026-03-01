@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc && mkdir -p dist/assets/images && cp -r src/assets/images dist/assets/ && npx puppeteer browsers install chrome",
+    "build": "tsc && mkdir -p dist/assets/images && cp -r src/assets/images dist/assets/",
+    "postinstall": "node -e \"if(!process.env.PUPPETEER_SKIP_DOWNLOAD){require('child_process').execSync('npx puppeteer browsers install chrome',{stdio:'inherit'})}\"",
     "start": "node dist/index.js",
     "seed": "tsx src/scripts/seed.ts"
   },

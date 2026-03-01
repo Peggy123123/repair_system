@@ -92,9 +92,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useFrontendUserStore } from '@/stores/frontendUser'
+import { useAdminStore } from '@/stores/admin'
 import { logoutUser } from '@/services/api'
 import { useLiff } from '@/composables/useLiff'
 import Button from '@/components/common/Button.vue'
@@ -102,7 +103,22 @@ import Button from '@/components/common/Button.vue'
 const route = useRoute()
 const router = useRouter()
 const frontendUserStore = useFrontendUserStore()
+const adminStore = useAdminStore()
 const { isLiffAvailable, logoutLiff } = useLiff()
+
+const handleAdminUnauthorized = (event: Event) => {
+  const reason = (event as CustomEvent<{ reason: string }>).detail?.reason ?? 'expired'
+  adminStore.clearAdmin()
+  router.push({ path: '/admin/login', query: { reason } })
+}
+
+onMounted(() => {
+  window.addEventListener('admin:unauthorized', handleAdminUnauthorized)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('admin:unauthorized', handleAdminUnauthorized)
+})
 
 // 手機版選單狀態
 const isMobileMenuOpen = ref(false)

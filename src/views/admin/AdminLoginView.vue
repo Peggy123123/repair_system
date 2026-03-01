@@ -32,11 +32,15 @@
               id="admin-password"
               v-model="adminForm.password"
               type="password"
-
+              autocomplete="current-password"
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-textColor rounded-b-md focus:outline-none focus:ring-red-500 focus:border-red-500 focus:z-10 sm:text-sm"
               placeholder="密碼"
             />
           </div>
+        </div>
+
+        <div v-if="sessionMessage" class="text-amber-700 text-sm text-center bg-amber-50 border border-amber-200 rounded px-3 py-2">
+          {{ sessionMessage }}
         </div>
 
         <div v-if="loginError" class="text-red-600 text-sm text-center">
@@ -70,15 +74,30 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useAdminStore } from '@/stores/admin'
 import { loginAdmin } from '@/services/api'
 import type { Admin } from '@/types/admin'
 import Button from '@/components/common/Button.vue'
+import { useToast } from 'vue-toastification'
 
 const router = useRouter()
+const route = useRoute()
 const adminStore = useAdminStore()
+const toast = useToast()
+
+onMounted(() => {
+  if (route.query.reason === 'unauthenticated') {
+    toast.warning('請重新登入')
+  }
+})
+
+const sessionMessage = computed(() => {
+  if (route.query.reason === 'kicked') return '您的帳號已在另一台裝置登入，目前工作階段已終止，請重新登入。'
+  if (route.query.reason === 'expired') return '工作階段已過期，請重新登入。'
+  return ''
+})
 
 // 管理員登入表單
 const adminForm = ref({

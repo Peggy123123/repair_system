@@ -15,6 +15,7 @@ import AdminUsers from '@/components/admin/AdminUsers.vue'
 import AdminUserOrders from '@/components/admin/AdminUserOrders.vue'
 import AdminAdmins from '@/components/admin/AdminAdmins.vue'
 import AdminLoginView from '@/views/admin/AdminLoginView.vue'
+import NotFoundView from '@/views/NotFoundView.vue'
 import Step1DeviceSelection from '@/components/form/Step1DeviceSelection.vue'
 import Step2CategorySelection from '@/components/form/Step2CategorySelection.vue'
 import Step3FormDetails from '@/components/form/Step3FormDetails.vue'
@@ -81,6 +82,12 @@ const router = createRouter({
       component: OrderDetailView,
       meta: { requiresAuth: true },
       props: true
+    },
+    // 404
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: NotFoundView
     },
     // 後台路由
     {
@@ -176,7 +183,7 @@ router.beforeEach(async (to) => {
   // 後台路由需要管理員登入
   if (to.meta.requiresAdmin) {
     if (!adminStore.isLoggedIn) {
-      return '/admin/login'
+      return { path: '/admin/login', query: { reason: 'unauthenticated' } }
     }
   }
 

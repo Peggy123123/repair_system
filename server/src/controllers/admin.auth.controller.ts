@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { randomUUID } from 'crypto';
 import { validationResult } from 'express-validator';
 import { Admin } from '../models/Admin.js';
 import { generateAdminToken } from '../utils/jwt.utils.js';
@@ -34,10 +35,12 @@ export const login = async (
       return;
     }
 
+    const sessionToken = randomUUID();
     admin.lastLoginAt = new Date();
+    admin.sessionToken = sessionToken;
     await admin.save();
 
-    const token = generateAdminToken(admin._id.toString());
+    const token = generateAdminToken(admin._id.toString(), sessionToken);
 
     sendSuccess(res, {
       token,
@@ -53,10 +56,18 @@ export const login = async (
 };
 
 export const logout = async (
-  _req: Request,
-  res: Response
+  req: Request,
+  res: Response,
+  next: NextFunction
 ): Promise<void> => {
-  sendSuccess(res, null, 'Logged out successfully');
+  try {
+    if (req.admin) {
+      await Admin.findByIdAndUpdate(req.admin.id, { sessionToken: null });
+    }
+    sendSuccess(res, null, 'Logged out successfully');
+  } catch (error) {
+    next(error);
+  }
 };
 
 export const getMe = async (

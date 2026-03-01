@@ -26,7 +26,7 @@ async function initLiff(): Promise<void> {
       await liff.init({ liffId: LIFF_ID! })
       liffInstance = liff
       isLiffLoggedIn.value = liff.isLoggedIn()
-      isInLineClient.value = liff.isInClient()
+      isInLineClient.value = liff.isInClient() // 是否在line內部瀏覽器
     } catch (error) {
       initPromise = null
       throw error

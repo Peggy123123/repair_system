@@ -10,6 +10,7 @@ interface AdminPayload {
   id: string;
   type: 'admin';
   role?: 'super_admin' | 'admin' | 'moderator';
+  sessionToken?: string;
 }
 
 type TokenPayload = UserPayload | AdminPayload;
@@ -37,10 +38,11 @@ export const generateUserToken = (userId: string): string => {
   return jwt.sign(payload, config.jwt.secret, getSignOptions());
 };
 
-export const generateAdminToken = (adminId: string): string => {
+export const generateAdminToken = (adminId: string, sessionToken: string): string => {
   const payload: AdminPayload = {
     id: adminId,
     type: 'admin',
+    sessionToken,
   };
   return jwt.sign(payload, config.jwt.adminSecret, getSignOptions());
 };

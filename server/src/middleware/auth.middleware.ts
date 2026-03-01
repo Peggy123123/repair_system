@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyUserToken, verifyAdminToken } from '../utils/jwt.utils.js';
+import { Admin } from '../models/Admin.js';
 import { sendError } from '../utils/response.utils.js';
 
 export const authenticateUser = (
@@ -30,11 +31,11 @@ export const authenticateUser = (
   next();
 };
 
-export const authenticateAdmin = (
+export const authenticateAdmin = async (
   req: Request,
   res: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -47,6 +48,21 @@ export const authenticateAdmin = (
 
   if (!decoded) {
     sendError(res, 'Invalid or expired token', 401);
+    return;
+  }
+
+  try {
+    const admin = await Admin.findById(decoded.id).select('sessionToken');
+    if (!admin || admin.sessionToken !== decoded.sessionToken) {
+      res.status(401).json({
+        success: false,
+        error: '已在另一台裝置登入，請重新登入',
+        code: 'SESSION_REPLACED',
+      });
+      return;
+    }
+  } catch {
+    sendError(res, 'Authentication error', 500);
     return;
   }
 
@@ -64,11 +80,11 @@ export const authenticateAdmin = (
 };
 
 // Middleware that accepts both user and admin tokens
-export const authenticateAny = (
+export const authenticateAny = async (
   req: Request,
   res: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -92,6 +108,21 @@ export const authenticateAny = (
   // Try admin token
   const adminDecoded = verifyAdminToken(token);
   if (adminDecoded) {
+    try {
+      const admin = await Admin.findById(adminDecoded.id).select('sessionToken');
+      if (!admin || admin.sessionToken !== adminDecoded.sessionToken) {
+        res.status(401).json({
+          success: false,
+          error: '已在另一台裝置登入，請重新登入',
+          code: 'SESSION_REPLACED',
+        });
+        return;
+      }
+    } catch {
+      sendError(res, 'Authentication error', 500);
+      return;
+    }
+
     req.user = {
       id: adminDecoded.id,
       type: 'admin',

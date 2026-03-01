@@ -39,6 +39,7 @@ interface ApiResponse<T> {
   data?: T
   message?: string
   error?: string
+  code?: string
   details?: { field: string; message: string }[]
 }
 
@@ -63,6 +64,12 @@ export async function request<T>(
   const data: ApiResponse<T> = await response.json()
 
   if (!response.ok || !data.success) {
+    if (isAdmin && response.status === 401 && !endpoint.includes('/admin/auth/login')) {
+      removeAuthToken(true)
+      localStorage.removeItem('adminUser')
+      const reason = data.code === 'SESSION_REPLACED' ? 'kicked' : 'expired'
+      window.dispatchEvent(new CustomEvent('admin:unauthorized', { detail: { reason } }))
+    }
     throw new ApiError(
       data.error || 'API 請求失敗',
       response.status,

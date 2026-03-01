@@ -15,6 +15,7 @@ dist-ssr
 # Server
 server/node_modules
 server/dist
+server/.puppeteer-cache
 
 # Editor directories and files
 .vscode/*

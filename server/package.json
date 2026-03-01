@@ -5,11 +5,12 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "tsc && mkdir -p dist/assets/images && cp -r src/assets/images dist/assets/",
     "start": "node dist/index.js",
     "seed": "tsx src/scripts/seed.ts"
   },
   "dependencies": {
+    "@sparticuz/chromium": "^143.0.4",
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",

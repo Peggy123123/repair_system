@@ -1,4 +1,5 @@
 import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 import fs from 'fs';
 import path from 'path';
 
@@ -12,7 +13,7 @@ export interface WorkOrderData {
 }
 
 function getSignatureBase64(): string {
-  const imgPath = path.resolve(__dirname, '../../../src/assets/images/sign_image.png');
+  const imgPath = path.resolve(__dirname, '../assets/images/sign_image.png');
   const imgBuffer = fs.readFileSync(imgPath);
   return `data:image/png;base64,${imgBuffer.toString('base64')}`;
 }
@@ -192,27 +193,29 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#039;');
 }
 
-function getChromePath(): string {
-  // macOS
+async function getChromePath(): Promise<string> {
+  // macOS (本機開發)
   const macPath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
   if (fs.existsSync(macPath)) return macPath;
 
-  // Linux common paths
+  // Linux 系統安裝的 Chrome
   const linuxPaths = ['/usr/bin/google-chrome', '/usr/bin/chromium-browser', '/usr/bin/chromium'];
   for (const p of linuxPaths) {
     if (fs.existsSync(p)) return p;
   }
 
-  throw new Error('Chrome not found. Please install Google Chrome.');
+  // 雲端環境（Render 等）使用 @sparticuz/chromium
+  return await chromium.executablePath();
 }
 
 export async function generateWorkOrderPDF(data: WorkOrderData): Promise<Buffer> {
   const html = buildWorkOrderHTML(data);
+  const executablePath = await getChromePath();
 
   const browser = await puppeteer.launch({
     headless: true,
-    executablePath: getChromePath(),
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    executablePath,
+    args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
   });
 
   try {

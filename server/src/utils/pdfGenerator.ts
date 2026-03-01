@@ -1,5 +1,4 @@
-import puppeteer from 'puppeteer-core';
-import chromium from '@sparticuz/chromium';
+import puppeteer from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
 
@@ -193,34 +192,30 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#039;');
 }
 
-async function getChromePath(): Promise<string> {
-  // macOS (本機開發)
-  const macPath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-  if (fs.existsSync(macPath)) return macPath;
-
-  // Linux 系統安裝的 Chrome
-  const linuxPaths = ['/usr/bin/google-chrome', '/usr/bin/chromium-browser', '/usr/bin/chromium'];
-  for (const p of linuxPaths) {
-    if (fs.existsSync(p)) return p;
-  }
-
-  // 雲端環境（Render 等）使用 @sparticuz/chromium
-  return await chromium.executablePath();
+function getLocalChromePath(): string | undefined {
+  // 本機開發：使用系統安裝的 Chrome
+  const candidates = [
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', // macOS
+    '/usr/bin/google-chrome',
+    '/usr/bin/chromium-browser',
+    '/usr/bin/chromium',
+  ];
+  return candidates.find((p) => fs.existsSync(p));
 }
 
 export async function generateWorkOrderPDF(data: WorkOrderData): Promise<Buffer> {
   const html = buildWorkOrderHTML(data);
-  const executablePath = await getChromePath();
+  const localChrome = getLocalChromePath();
 
   const browser = await puppeteer.launch({
     headless: true,
-    executablePath,
-    args: [...chromium.args, '--no-sandbox', '--disable-setuid-sandbox'],
+    ...(localChrome ? { executablePath: localChrome } : {}),
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 
   try {
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
+    await page.setContent(html, { waitUntil: 'domcontentloaded' });
 
     const pdfBuffer = await page.pdf({
       format: 'A4',
